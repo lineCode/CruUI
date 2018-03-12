@@ -40,30 +40,7 @@ namespace cru {
                 )
             );
 
-            // Now we set up the Direct2D render target bitmap linked to the swapchain. 
-            // Whenever we render to this bitmap, it is directly rendered to the 
-            // swap chain associated with the window.
-
-            // Direct2D needs the dxgi version of the backbuffer surface pointer.
-            ComPtr<IDXGISurface> dxgiBackBuffer;
-            ThrowIfFailed(
-                dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
-            );
-
-            auto bitmap_properties =
-                D2D1::BitmapProperties1(
-                    D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-                    D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)
-                );
-
-            // Get a D2D surface from the DXGI back buffer to use as the D2D render target.
-            ThrowIfFailed(
-                d2d1_device_context->CreateBitmapFromDxgiSurface(
-                    dxgiBackBuffer.Get(),
-                    &bitmap_properties,
-                    &d2d1_bitmap_
-                )
-            );
+            CreateTargetBitmap();
         }
 
         WindowRenderTarget::~WindowRenderTarget() {
@@ -81,36 +58,16 @@ namespace cru {
 
             ID2D1Image* old_target;
             d2d1_device_context->GetTarget(&old_target);
-            bool target_this = old_target == this->d2d1_bitmap_.Get();
+            bool target_this = old_target == this->target_bitmap_.Get();
             if (target_this)
                 d2d1_device_context->SetTarget(nullptr);
 
+            target_bitmap_ = nullptr;
             dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-
-            ComPtr<IDXGISurface> dxgiBackBuffer;
-            ThrowIfFailed(
-                dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
-            );
-
-            auto bitmap_properties =
-                D2D1::BitmapProperties1(
-                    D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-                    D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE)
-                );
-
-            ID2D1Bitmap1* target_bitmap;
-            ThrowIfFailed(
-                d2d1_device_context->CreateBitmapFromDxgiSurface(
-                    dxgiBackBuffer.Get(),
-                    &bitmap_properties,
-                    &target_bitmap
-                )
-            );
-
-            d2d1_bitmap_ = target_bitmap;
+            CreateTargetBitmap();
 
             if (target_this)
-                d2d1_device_context->SetTarget(d2d1_bitmap_.Get());
+                d2d1_device_context->SetTarget(target_bitmap_.Get());
         }
 
         void WindowRenderTarget::Present() {
@@ -119,8 +76,36 @@ namespace cru {
             );
         }
 
+        void WindowRenderTarget::CreateTargetBitmap() {
+            // Direct2D needs the dxgi version of the backbuffer surface pointer.
+            ComPtr<IDXGISurface> dxgiBackBuffer;
+            ThrowIfFailed(
+                dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
+            );
+
+            auto dpi = graph_manager_->GetDpi();
+
+            auto bitmap_properties =
+                D2D1::BitmapProperties1(
+                    D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+                    D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
+                    dpi.x,
+                    dpi.y
+                );
+
+            // Get a D2D surface from the DXGI back buffer to use as the D2D render target.
+            ThrowIfFailed(
+                graph_manager_->GetD2D1DeviceContext()->CreateBitmapFromDxgiSurface(
+                    dxgiBackBuffer.Get(),
+                    &bitmap_properties,
+                    &target_bitmap_
+                )
+            );
+
+        }
+
         ID2D1Bitmap1 * WindowRenderTarget::GetTargetBitmap() {
-            return this->d2d1_bitmap_.Get();
+            return this->target_bitmap_.Get();
         }
 
         GraphManager::GraphManager() {

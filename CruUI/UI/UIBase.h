@@ -37,6 +37,10 @@ namespace cru {
                 return top + height;
             }
 
+            Size GetSize() {
+                return Size(width, height);
+            }
+
             bool IsPointInside(const Point& point) {
                 return
                     point.x >= left         &&

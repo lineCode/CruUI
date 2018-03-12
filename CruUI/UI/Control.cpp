@@ -76,6 +76,25 @@ namespace cru {
             this->OnRemoveChild(child);
         }
 
+        Size Control::GetSize() {
+            return GetRectRelativeToParent().GetSize();
+        }
+
+        void Control::Draw(ID2D1DeviceContext* device_context) {
+            D2D1::Matrix3x2F old_transform;
+            device_context->GetTransform(&old_transform);
+
+            auto rect = GetRectRelativeToParent();
+            device_context->SetTransform(old_transform * D2D1::Matrix3x2F::Translation(rect.left, rect.top));
+
+            OnDraw(device_context);
+
+            for (auto child : GetChildren())
+                child->Draw(device_context);
+
+            device_context->SetTransform(old_transform);
+        }
+
         void Control::OnAddChild(Control* child) {
             auto ancestor = GetAncestor(this);
             if (auto window = dynamic_cast<Window*>(ancestor)) {
@@ -95,6 +114,10 @@ namespace cru {
         }
 
         void Control::OnDetachToWindow() {
+
+        }
+
+        void Control::OnDraw(ID2D1DeviceContext * device_context) {
 
         }
 

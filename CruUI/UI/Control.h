@@ -32,6 +32,9 @@ namespace cru {
             //Remove a child at specified position.
             void RemoveChild(int position);
 
+            //Get the size.
+            //Alias for GetRectRelativeToParent().GetSize() .
+            Size GetSize();
 
             //Get the rect relative to its parent.
             virtual Rect GetRectRelativeToParent() = 0;
@@ -39,11 +42,17 @@ namespace cru {
             //Test whether a point is inside the control in local coordinate.
             virtual bool IsPointInside(const Point& point) = 0;
 
+            //Draw this control and its child controls.
+            void Draw(ID2D1DeviceContext* device_context);
+
+            
         protected:
             virtual void OnAddChild(Control* child);
             virtual void OnRemoveChild(Control* child);
             virtual void OnAttachToWindow(Window* window);
             virtual void OnDetachToWindow();
+
+            virtual void OnDraw(ID2D1DeviceContext* device_context);
 
         private:
             Control* parent_ = nullptr;

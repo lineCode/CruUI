@@ -1,18 +1,6 @@
 #pragma once
 
-#include "../Base.h"
-
-#pragma comment(lib, "D3D11.lib")
-#include <d3d11.h>
-
-#pragma comment(lib, "D2d1.lib")
-#include <d2d1_1.h>
-
-#pragma comment(lib, "DWrite.lib")
-#include <dwrite.h>
-
-#include <dxgi1_2.h>
-#include <wrl/client.h>
+#include "Base.h"
 
 #include <memory>
 
@@ -41,9 +29,12 @@ namespace cru {
             void Present();
 
         private:
+            void CreateTargetBitmap();
+
+        private:
             GraphManager* graph_manager_;
             Microsoft::WRL::ComPtr<IDXGISwapChain1> dxgi_swap_chain_;
-            Microsoft::WRL::ComPtr<ID2D1Bitmap1> d2d1_bitmap_;
+            Microsoft::WRL::ComPtr<ID2D1Bitmap1> target_bitmap_;
         };
 
         struct Dpi {
