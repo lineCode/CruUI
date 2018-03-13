@@ -71,6 +71,12 @@ namespace cru {
             //Send a repaint message to the window's message queue which may make the window repaint.
             void Repaint();
 
+            //Show the window.
+            void Show();
+
+            //Hide thw window.
+            void Hide();
+
             //Get the client size.
             Size GetClientSize();
 

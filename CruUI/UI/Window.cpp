@@ -93,7 +93,7 @@ namespace cru {
             auto app = Application::GetInstance();
             hwnd_ = CreateWindowEx(0,
                 app->GetWindowManager()->GetGeneralWindowClass()->GetName(),
-                L"", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                L"", WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 nullptr, nullptr, app->GetInstanceHandle(), nullptr
             );
@@ -123,6 +123,18 @@ namespace cru {
             if (IsWindowValid()) {
                 InvalidateRect(hwnd_, nullptr, false);
                 UpdateWindow(hwnd_);
+            }
+        }
+
+        void Window::Show() {
+            if (IsWindowValid()) {
+                ShowWindow(hwnd_, SW_SHOWNORMAL);
+            }
+        }
+
+        void Window::Hide() {
+            if (IsWindowValid()) {
+                ShowWindow(hwnd_, SW_HIDE);
             }
         }
 
@@ -231,7 +243,9 @@ namespace cru {
         }
 
         void Window::OnPaintInternal() {
-            auto device_context = render_target_->GetGraphManager()->GetD2D1DeviceContext();
+            render_target_->SetAsTarget();
+
+            auto device_context = render_target_->GetD2DDeviceContext();
 
             device_context->BeginDraw();
 
@@ -244,11 +258,13 @@ namespace cru {
                 device_context->EndDraw(), "Failed to draw window."
             );
 
+            render_target_->Present();
+
             ValidateRect(hwnd_, nullptr);
         }
 
         void Window::OnResizeInternal(int new_width, int new_height) {
-            render_target_->ResizeBuffer();
+            render_target_->ResizeBuffer(new_width, new_height);
         }
     }
 }

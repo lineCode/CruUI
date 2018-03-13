@@ -19,11 +19,17 @@ namespace cru {
             //Get the graph manager that created the render target.
             GraphManager* GetGraphManager();
 
+            //Get the d2d device context.
+            ID2D1DeviceContext* GetD2DDeviceContext();
+
             //Get the target bitmap which can be set as the ID2D1DeviceContext's target.
             ID2D1Bitmap1* GetTargetBitmap();
 
             //Resize the underlying buffer.
-            void ResizeBuffer();
+            void ResizeBuffer(int width, int height);
+
+            //Set this render target as the d2d device context's target.
+            void SetAsTarget();
 
             //Present the data of the underlying buffer to the window.
             void Present();
@@ -56,6 +62,9 @@ namespace cru {
 
             //Create a window render target with the HWND.
             std::shared_ptr<WindowRenderTarget> CreateWindowRenderTarget(HWND hwnd);
+
+            //Set the window render target as the target the d2d device context.
+            void SetTarget(WindowRenderTarget* target);
 
             //Get the desktop dpi.
             Dpi GetDpi();

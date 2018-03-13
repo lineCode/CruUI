@@ -50,24 +50,33 @@ namespace cru {
             return graph_manager_;
         }
 
-        void WindowRenderTarget::ResizeBuffer() {
+        void WindowRenderTarget::ResizeBuffer(int width, int height) {
             auto graph_manager = graph_manager_;
             auto d3d11_device = graph_manager->GetD3D11Device();
             auto dxgi_factory = graph_manager->GetDXGIFactory();
             auto d2d1_device_context = graph_manager->GetD2D1DeviceContext();
 
-            ID2D1Image* old_target;
+            ComPtr<ID2D1Image> old_target;
             d2d1_device_context->GetTarget(&old_target);
-            bool target_this = old_target == this->target_bitmap_.Get();
+            bool target_this = old_target == this->target_bitmap_;
             if (target_this)
                 d2d1_device_context->SetTarget(nullptr);
 
+            old_target = nullptr;
             target_bitmap_ = nullptr;
-            dxgi_swap_chain_->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+            ThrowIfFailed(
+                dxgi_swap_chain_->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0)
+            );
+
             CreateTargetBitmap();
 
             if (target_this)
                 d2d1_device_context->SetTarget(target_bitmap_.Get());
+        }
+
+        void WindowRenderTarget::SetAsTarget() {
+            graph_manager_->SetTarget(this);
         }
 
         void WindowRenderTarget::Present() {
@@ -104,12 +113,20 @@ namespace cru {
 
         }
 
+        ID2D1DeviceContext * WindowRenderTarget::GetD2DDeviceContext() {
+            return graph_manager_->GetD2D1DeviceContext();
+        }
+
         ID2D1Bitmap1 * WindowRenderTarget::GetTargetBitmap() {
             return this->target_bitmap_.Get();
         }
 
         GraphManager::GraphManager() {
             UINT creation_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+#ifdef _DEBUG
+            creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
             D3D_FEATURE_LEVEL feature_levels[] =
             {
@@ -185,12 +202,11 @@ namespace cru {
         }
 
         std::shared_ptr<WindowRenderTarget> GraphManager::CreateWindowRenderTarget(HWND hwnd) {
-            return std::make_shared<WindowRenderTarget>(
-                d3d11_device_.Get(),
-                dxgi_factory_.Get(),
-                d2d1_device_context_.Get(),
-                hwnd
-            );
+            return std::make_shared<WindowRenderTarget>(this, hwnd);
+        }
+
+        void GraphManager::SetTarget(WindowRenderTarget * target) {
+            d2d1_device_context_->SetTarget(target->GetTargetBitmap());
         }
 
         Dpi GraphManager::GetDpi() {
