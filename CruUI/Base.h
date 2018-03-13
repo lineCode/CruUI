@@ -50,4 +50,9 @@ namespace cru {
         if (FAILED(h_result))
             throw std::runtime_error("A HRESULT test failed.");
     }
+
+    inline void ThrowIfFailed(HRESULT h_result, const std::string& message) {
+        if (FAILED(h_result))
+            throw std::runtime_error(message);
+    }
 }

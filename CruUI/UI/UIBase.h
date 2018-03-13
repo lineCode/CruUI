@@ -29,19 +29,19 @@ namespace cru {
                 return Rect(left, top, right - left, bottom - top);
             }
 
-            float GetRight() {
+            float GetRight() const {
                 return left + width;
             }
 
-            float GetBottom() {
+            float GetBottom() const {
                 return top + height;
             }
 
-            Size GetSize() {
+            Size GetSize() const {
                 return Size(width, height);
             }
 
-            bool IsPointInside(const Point& point) {
+            bool IsPointInside(const Point& point) const {
                 return
                     point.x >= left         &&
                     point.x < GetRight()    &&

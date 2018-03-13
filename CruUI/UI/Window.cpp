@@ -119,6 +119,73 @@ namespace cru {
                 DestroyWindow(hwnd_);
         }
 
+        void Window::Repaint() {
+            if (IsWindowValid()) {
+                InvalidateRect(hwnd_, nullptr, false);
+                UpdateWindow(hwnd_);
+            }
+        }
+
+        Size Window::GetClientSize() {
+            if (!IsWindowValid())
+                return Size();
+
+            auto pixel_rect = GetClientRectPixel();
+            return Size(
+                graph::PixelToDipX(pixel_rect.right),
+                graph::PixelToDipY(pixel_rect.bottom)
+            );
+        }
+
+        void Window::SetClientSize(const Size & size) {
+            if (IsWindowValid()) {
+                auto window_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_STYLE));
+                auto window_ex_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_EXSTYLE));
+
+                RECT rect;
+                rect.left = 0;
+                rect.top = 0;
+                rect.right = graph::DipToPixelX(size.width);
+                rect.bottom = graph::DipToPixelY(size.height);
+                AdjustWindowRectEx(&rect, window_style, FALSE, window_ex_style);
+
+                SetWindowPos(
+                    hwnd_, nullptr, 0, 0,
+                    rect.right - rect.left,
+                    rect.bottom - rect.top,
+                    SWP_NOZORDER | SWP_NOMOVE
+                );
+            }
+        }
+
+        Rect Window::GetWindowRect() {
+            if (!IsWindowValid())
+                return Rect();
+
+            RECT rect;
+            ::GetWindowRect(hwnd_, &rect);
+
+            return Rect::FromVertices(
+                graph::PixelToDipX(rect.left),
+                graph::PixelToDipY(rect.top),
+                graph::PixelToDipX(rect.right),
+                graph::PixelToDipY(rect.bottom)
+            );
+        }
+
+        void Window::SetWindowRect(const Rect & rect) {
+            if (IsWindowValid()) {
+                SetWindowPos(
+                    hwnd_, nullptr,
+                    graph::DipToPixelX(rect.left),
+                    graph::DipToPixelY(rect.top),
+                    graph::DipToPixelX(rect.GetRight()),
+                    graph::DipToPixelY(rect.GetBottom()),
+                    SWP_NOZORDER
+                );
+            }
+        }
+
         bool Window::HandleWindowMessage(HWND hwnd, int msg, WPARAM w_param, LPARAM l_param, LRESULT & result) {
             switch (msg) {
             case WM_PAINT:
@@ -141,13 +208,11 @@ namespace cru {
         }
 
         Rect Window::GetRectRelativeToParent() {
-            auto pixel_rect = GetClientRectPixel();
-            return Rect::FromVertices(
-                0.0f,
-                0.0f,
-                graph::PixelToDipX(pixel_rect.right),
-                graph::PixelToDipY(pixel_rect.bottom)
-            );
+            return Rect(Point(), GetClientSize());
+        }
+
+        void Window::SetRectRelativeToParent(const Rect & rect) {
+            SetClientSize(rect.GetSize());
         }
 
         bool Window::IsPointInside(const Point & point) {
@@ -166,6 +231,19 @@ namespace cru {
         }
 
         void Window::OnPaintInternal() {
+            auto device_context = render_target_->GetGraphManager()->GetD2D1DeviceContext();
+
+            device_context->BeginDraw();
+
+            //Clear the background.
+            device_context->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+            Draw(device_context);
+
+            ThrowIfFailed(
+                device_context->EndDraw(), "Failed to draw window."
+            );
+
             ValidateRect(hwnd_, nullptr);
         }
 

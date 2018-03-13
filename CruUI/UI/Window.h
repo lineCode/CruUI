@@ -59,6 +59,7 @@ namespace cru {
             NO_COPY_MOVE(Window)
 
         public:
+            //Get the handle of the window. Return null if window is invalid.
             HWND GetWindowHandle();
 
             //Return if the window is still valid, that is, hasn't been closed or destroyed.
@@ -67,18 +68,41 @@ namespace cru {
             //Close and destroy the window if the window is valid.
             void Close();
 
+            //Send a repaint message to the window's message queue which may make the window repaint.
+            void Repaint();
+
+            //Get the client size.
+            Size GetClientSize();
+
+            //Set the client size and repaint.
+            void SetClientSize(const Size& size);
+
+            //Get the rect of the window containing frame.
+            //The lefttop of the rect is relative to screen lefttop.
+            Rect GetWindowRect();
+
+            //Set the rect of the window containing frame.
+            //The lefttop of the rect is relative to screen lefttop.
+            void SetWindowRect(const Rect& rect);
+
             //Handle the raw window message.
             //Return true if the message is handled and get the result through "result" argument.
             //Return false if the message is not handled.
             bool HandleWindowMessage(HWND hwnd, int msg, WPARAM w_param, LPARAM l_param, LRESULT& result);
 
             //Get the rect relative to its parent.
+            //For a window, the rect is of the client area and its lefttop is always (0, 0).
             Rect GetRectRelativeToParent() override;
+
+            //Set the rect relative to its parent.
+            //For a window, it is to set the client rect. The lefttop of the rect is ignored.
+            void SetRectRelativeToParent(const Rect& rect) override;
 
             //Test whether a point is inside the control in local coordinate.
             bool IsPointInside(const Point& point) override;
 
         private:
+            //Get the client rect in pixel.
             RECT GetClientRectPixel();
 
             void OnDestroyInternal();

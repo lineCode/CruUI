@@ -39,6 +39,9 @@ namespace cru {
             //Get the rect relative to its parent.
             virtual Rect GetRectRelativeToParent() = 0;
 
+            //Set the rect relative to its parent.
+            virtual void SetRectRelativeToParent(const Rect& rect) = 0;
+
             //Test whether a point is inside the control in local coordinate.
             virtual bool IsPointInside(const Point& point) = 0;
 
