@@ -7,6 +7,12 @@ namespace cru {
     namespace ui {
         class Window;
 
+        enum class MouseButton {
+            Left,
+            Right,
+            Middle
+        };
+
         class Control abstract : public Object {
         public:
             Control();
@@ -56,6 +62,12 @@ namespace cru {
             virtual void OnDetachToWindow();
 
             virtual void OnDraw(ID2D1DeviceContext* device_context);
+
+            virtual void OnMouseEnter(const Point& point);
+            virtual void OnMouseLeave();
+            virtual void OnMouseMove(const Point& point);
+            virtual void OnMouseDown(const Point& point, MouseButton button);
+            virtual void OnMouseUp(const Point& point, MouseButton button);
 
         private:
             Control* parent_ = nullptr;

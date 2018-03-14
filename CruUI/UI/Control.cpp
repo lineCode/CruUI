@@ -121,6 +121,25 @@ namespace cru {
 
         }
 
+        void Control::OnMouseEnter(const Point & point) {
+            if (auto parent = GetParent())
+                parent->OnMouseEnter(point);
+        }
+
+        void Control::OnMouseLeave() {
+            if (auto parent = GetParent())
+                parent->OnMouseLeave();
+        }
+
+        void Control::OnMouseMove(const Point & point) {
+        }
+
+        void Control::OnMouseDown(const Point & point, MouseButton button) {
+        }
+
+        void Control::OnMouseUp(const Point & point, MouseButton button) {
+        }
+
 
         Control* GetAncestor(Control* control) {
             auto ancestor = control;
