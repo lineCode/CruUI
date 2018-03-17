@@ -63,4 +63,16 @@ namespace cru {
         for (auto ptr : handlers)
             (*ptr)(args);
 	}
+
+    class BasicEventArgs : public Object {
+    public:
+        BasicEventArgs(Object* sender);
+        ~BasicEventArgs() override;
+
+        //Get the original sender of the event.
+        Object* GetSender();
+
+    private:
+        Object * sender_;
+    };
 }

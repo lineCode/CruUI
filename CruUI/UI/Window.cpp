@@ -89,7 +89,7 @@ namespace cru {
                 return find_result->second;
         }
 
-        Window::Window() {
+        Window::Window() : control_list_({ this }) {
             auto app = Application::GetInstance();
             hwnd_ = CreateWindowEx(0,
                 app->GetWindowManager()->GetGeneralWindowClass()->GetName(),
@@ -231,6 +231,13 @@ namespace cru {
             return GetRectRelativeToParent().IsPointInside(point);
         }
 
+        void Window::RefreshControlList() {
+            control_list_.empty();
+            TraverseDescendants(this, [this](Control* control) {
+                this->control_list_.push_back(control);
+            });
+        }
+
         RECT Window::GetClientRectPixel() {
             RECT rect{ };
             GetClientRect(hwnd_, &rect);
@@ -265,6 +272,38 @@ namespace cru {
 
         void Window::OnResizeInternal(int new_width, int new_height) {
             render_target_->ResizeBuffer(new_width, new_height);
+        }
+
+        void Window::OnMouseMoveInternal(POINT point) {
+            Point dip_point(
+                graph::PixelToDipX(point.x),
+                graph::PixelToDipY(point.y)
+            );
+
+            //when mouse was previous outside the window
+            if (mouse_hover_control_ == nullptr) {
+                //invoke TrackMouseEvent to have WM_MOUSELEAVE sent.
+                TRACKMOUSEEVENT tme;
+                tme.cbSize = sizeof tme;
+                tme.dwFlags = TME_LEAVE;
+                tme.hwndTrack = hwnd_;
+
+                TrackMouseEvent(&tme);
+            }
+
+            Control* new_control_mouse_hover;
+            for (auto i = control_list_.crbegin(); i != control_list_.crend(); ++i) {
+                auto control = *i;
+                if (control->IsPointInside(AbsoluteToLocal(control, dip_point))) {
+                    new_control_mouse_hover = control;
+                    break;
+                }
+            }
+
+            //UNDONE!!!
+        }
+
+        void Window::OnMouseLeaveInternal() {
         }
     }
 }

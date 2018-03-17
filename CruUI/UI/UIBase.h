@@ -37,6 +37,10 @@ namespace cru {
                 return top + height;
             }
 
+            Point GetLefttop() const {
+                return Point(left, top);
+            }
+
             Size GetSize() const {
                 return Size(width, height);
             }

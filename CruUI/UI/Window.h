@@ -3,6 +3,7 @@
 #include "Control.h"
 
 #include <map>
+#include <list>
 #include <memory>
 
 namespace cru {
@@ -107,6 +108,10 @@ namespace cru {
             //Test whether a point is inside the control in local coordinate.
             bool IsPointInside(const Point& point) override;
 
+            //Refresh control list.
+            //It should be invoked every time a control is added or removed from the tree.
+            void RefreshControlList();
+
         private:
             //Get the client rect in pixel.
             RECT GetClientRectPixel();
@@ -115,9 +120,16 @@ namespace cru {
             void OnPaintInternal();
             void OnResizeInternal(int new_width, int new_height);
 
+            void OnMouseMoveInternal(POINT point);
+            void OnMouseLeaveInternal();
+
         private:
             HWND hwnd_ = 0;
-            std::shared_ptr<graph::WindowRenderTarget> render_target_;
+            std::shared_ptr<graph::WindowRenderTarget> render_target_{};
+
+            std::list<Control*> control_list_;
+
+            Control* mouse_hover_control_ = nullptr;
         };
     }
 }
