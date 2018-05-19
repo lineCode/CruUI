@@ -4,16 +4,19 @@
 
 #include <memory>
 
-namespace cru {
-    namespace graph {
+namespace cru
+{
+    namespace graph
+	{
         class GraphManager;
 
         //Represents a window render target.
-        class WindowRenderTarget : public Object {
+        class WindowRenderTarget : public Object
+		{
         public:
             WindowRenderTarget(GraphManager* graph_manager, HWND hwnd);
             ~WindowRenderTarget() override;
-            NO_COPY_MOVE(WindowRenderTarget)
+            CRU_NO_COPY_MOVE(WindowRenderTarget)
 
         public:
             //Get the graph manager that created the render target.
@@ -43,16 +46,18 @@ namespace cru {
             Microsoft::WRL::ComPtr<ID2D1Bitmap1> target_bitmap_;
         };
 
-        struct Dpi {
+        struct Dpi
+		{
             float x;
             float y;
         };
 
-        class GraphManager : public Object {
+        class GraphManager : public Object
+		{
         public:
             GraphManager();
             ~GraphManager() override;
-            NO_COPY_MOVE(GraphManager)
+            CRU_NO_COPY_MOVE(GraphManager)
 
         public:
             ID2D1Factory1* GetD2D1Factory();

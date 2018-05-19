@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Event.h"
+
 namespace cru {
     namespace ui {
         struct Point {
@@ -58,5 +60,17 @@ namespace cru {
             float width = 0.0f;
             float height = 0.0f;
         };
+
+		class UIEventArgs : public BasicEventArgs
+		{
+		public:
+			UIEventArgs(Object* sender, Object* original_sender);
+			~UIEventArgs() override;
+
+			Object* GetOriginalSender();
+
+		private:
+			Object* original_sender_;
+		};
     }
 }

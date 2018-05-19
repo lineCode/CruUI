@@ -6,28 +6,32 @@
 
 namespace cru {
     namespace ui {
+		class Control;
         class Window;
 
-        enum class MouseButton {
+        enum class MouseButton
+		{
             Left,
             Right,
             Middle
         };
 
-        class MouseEventArgs : public BasicEventArgs {
+        class MouseEventArgs : public UIEventArgs
+		{
         public:
-            MouseEventArgs(Object* sender, const Point& point);
+            MouseEventArgs(Object* sender, Object* origin_sender, const Point& point);
             ~MouseEventArgs() override;
 
-            Point GetPoint();
+            Point GetPoint(Control* control);
 
         private:
             Point point_;
         };
 
-        class MouseButtonEventArgs : public MouseEventArgs {
+        class MouseButtonEventArgs : public MouseEventArgs
+		{
         public:
-            MouseButtonEventArgs(Object* sender, const Point& point, MouseButton button);
+            MouseButtonEventArgs(Object* sender, Object* origin_sender, const Point& point, MouseButton button);
             ~MouseButtonEventArgs() override;
 
             MouseButton GetMouseButton();
@@ -39,17 +43,34 @@ namespace cru {
         using MouseEvent = Event<MouseEventArgs>;
         using MouseButtonEvent = Event<MouseButtonEventArgs>;
 
-        class Control abstract : public Object {
+		//the position cache
+		struct ControlPositionCache
+		{
+			//The lefttop relative to the ancestor.
+			Point lefttop_position_absolute_;
+		};
+
+        class Control abstract : public Object
+		{
         public:
             Control();
-            ~Control() override;
-            NO_COPY_MOVE(Control)
+			~Control() override;
+			CRU_NO_COPY_MOVE(Control)
 
         public:
-            //Get parent of control, return nullptr if it has no parent.
+
+			//*************** region: tree ***************
+
+			//Get parent of control, return nullptr if it has no parent.
             Control* GetParent();
 
-            //Return all children.
+			//Traverse the children
+			void foreachChild(std::function<void(Control*)> predicate);
+			void foreachChild(std::function<FlowControl(Control*)> predicate);
+
+            //Return a vector of all children. This function will create a
+			//temporary copy of vector of children. If you just want to
+			//traverse all children, just call foreachChild.
             std::vector<Control*> GetChildren();
 
             //Add a child at tail.
@@ -64,24 +85,50 @@ namespace cru {
             //Remove a child at specified position.
             void RemoveChild(int position);
 
-            //Get the size.
-            //Alias for GetRectRelativeToParent().GetSize() .
-            Size GetSize();
+			//Get the ancestor of the control.
+			Control* GetAncestor();
+
+			//Traverse the tree rooted the control.
+			void TraverseDescendants(const std::function<void(Control*)>& predicate);
+
+			//*************** region: location and size ***************
 
             //Get the rect relative to its parent.
             virtual Rect GetRectRelativeToParent() = 0;
 
-            //Set the rect relative to its parent.
+            //Set the rect relative to its parent. Remember to
+			//call InvalidPositionCache after change position.
             virtual void SetRectRelativeToParent(const Rect& rect) = 0;
 
-            //Test whether a point is inside the control in local coordinate.
-            virtual bool IsPointInside(const Point& point) = 0;
+			//Get the size. Alias for GetRectRelativeToParent().GetSize().
+			Size GetSize();
 
-            //Draw this control and its child controls.
+			//Get lefttop relative to ancestor. This is only valid when
+			//attached to window. Notice that the value is cached.
+			//You can invalidate and recalculate it by calling
+			//InvalidatePositionCache. 
+			Point GetLefttopAbsolute();
+
+			//Local point to absolute point.
+			Point LocalToAbsolute(const Point& point);
+
+			//Absolute point to local point.
+			Point AbsoluteToLocal(const Point& point);
+
+			//Refresh the position cache of this and all descendents.
+			void InvalidatePositionCache();
+
+			//Test whether a point is inside the control in local coordinate.
+			virtual bool IsPointInside(const Point& point) = 0;
+
+			//*************** region: graphic ***************
+
+			//Draw this control and its child controls.
             void Draw(ID2D1DeviceContext* device_context);
 
-        //Events
-        public:
+
+			//*************** region: events ***************
+		public:
             //Raised when mouse enter the control.
             MouseEvent mouseEnterEvent;
             //Raised when mouse is leave the control.
@@ -106,32 +153,22 @@ namespace cru {
 
             virtual void OnDraw(ID2D1DeviceContext* device_context);
 
-            virtual void OnMouseEnter(const Point& point);
-            virtual void OnMouseLeave();
-            virtual void OnMouseMove(const Point& point);
-            virtual void OnMouseDown(const Point& point, MouseButton button);
-            virtual void OnMouseUp(const Point& point, MouseButton button);
+            virtual void OnMouseEnter(MouseEventArgs& args);
+            virtual void OnMouseLeave(MouseEventArgs& args);
+            virtual void OnMouseMove(MouseEventArgs& args);
+            virtual void OnMouseDown(MouseButtonEventArgs& args);
+            virtual void OnMouseUp(MouseButtonEventArgs& args);
+
+		private:
+			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
 
         private:
             Control* parent_ = nullptr;
             std::vector<Control*> children_{};
 
+			ControlPositionCache position_cache_{};
+
             bool isMouseInside_ = false;
         };
-
-        //Get the ancestor of the control.
-        Control* GetAncestor(Control* control);
-
-        //Traverse the tree rooted the control.
-        void TraverseDescendants(Control* control, const std::function<void(Control*)>& predicate);
-
-        //Get the rect relative to the ancestor of the control.
-        Rect GetRectAbsolute(Control* control);
-
-        //Local point to absolute point.
-        Point LocalToAbsolute(Control* control, const Point& point);
-
-        //Absolute point to local point.
-        Point AbsoluteToLocal(Control* control, const Point& point);
     }
 }

@@ -1,6 +1,7 @@
 #include "Window.h"
 #include "Application.h"
 #include "Graph/Graph.h"
+#include "Exception.h"
 
 namespace cru {
     namespace ui {
@@ -232,8 +233,8 @@ namespace cru {
         }
 
         void Window::RefreshControlList() {
-            control_list_.empty();
-            TraverseDescendants(this, [this](Control* control) {
+            control_list_.clear();
+            TraverseDescendants([this](Control* control) {
                 this->control_list_.push_back(control);
             });
         }
@@ -294,7 +295,7 @@ namespace cru {
             Control* new_control_mouse_hover;
             for (auto i = control_list_.crbegin(); i != control_list_.crend(); ++i) {
                 auto control = *i;
-                if (control->IsPointInside(AbsoluteToLocal(control, dip_point))) {
+                if (control->IsPointInside(control->AbsoluteToLocal(dip_point))) {
                     new_control_mouse_hover = control;
                     break;
                 }

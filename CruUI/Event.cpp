@@ -6,6 +6,7 @@ namespace cru {
     }
 
     BasicEventArgs::~BasicEventArgs() {
+
     }
 
     Object* BasicEventArgs::GetSender() {

@@ -23,7 +23,7 @@ namespace cru {
     public:
         Application(HINSTANCE h_instance);
         ~Application() override;
-        NO_COPY_MOVE(Application)
+        CRU_NO_COPY_MOVE(Application)
 
     public:
         int Run();

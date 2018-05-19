@@ -12,7 +12,8 @@ namespace cru {
     }
 
     namespace ui {
-        class WindowClass : public Object {
+        class WindowClass : public Object
+		{
         public:
             WindowClass(const std::wstring& name, WNDPROC window_proc, HINSTANCE hinstance);
             ~WindowClass() override;
@@ -25,7 +26,8 @@ namespace cru {
             ATOM atom_;
         };
 
-        class WindowManager : public Object {
+        class WindowManager : public Object
+		{
         public:
             WindowManager();
             ~WindowManager() override;
@@ -52,12 +54,13 @@ namespace cru {
         };
 
 
-        class Window : public Control {
+        class Window : public Control
+		{
             friend class WindowManager;
         public:
             Window();
             ~Window() override;
-            NO_COPY_MOVE(Window)
+            CRU_NO_COPY_MOVE(Window)
 
         public:
             //Get the handle of the window. Return null if window is invalid.
