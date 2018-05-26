@@ -48,7 +48,7 @@ namespace cru {
             }
         }
 
-        return msg.wParam;
+        return static_cast<int>(msg.wParam);
     }
 
     void Application::Quit(int quit_code) {

@@ -4,6 +4,12 @@
 
 namespace cru {
 	namespace ui {
+		MouseEventArgs::MouseEventArgs(Object * sender, Object * origin_sender)
+			: UIEventArgs(sender, origin_sender), point_(std::nullopt)
+		{
+
+		}
+
 		MouseEventArgs::MouseEventArgs(Object* sender, Object* origin_sender, const Point& point)
 			: UIEventArgs(sender, origin_sender), point_(point)
 		{
@@ -12,12 +18,15 @@ namespace cru {
 
 		MouseEventArgs::~MouseEventArgs()
 		{
-
+			
 		}
 
 		Point MouseEventArgs::GetPoint(Control* control)
 		{
-			return control->AbsoluteToLocal(point_);
+			if (point_.has_value())
+				return control->AbsoluteToLocal(point_.value());
+			else
+				return Point();
 		}
 
 		MouseButtonEventArgs::MouseButtonEventArgs(
@@ -244,6 +253,26 @@ namespace cru {
 
 		}
 
+		void Control::OnMouseEnter(MouseEventArgs & args)
+		{
+		}
+
+		void Control::OnMouseLeave(MouseEventArgs & args)
+		{
+		}
+
+		void Control::OnMouseMove(MouseEventArgs & args)
+		{
+		}
+
+		void Control::OnMouseDown(MouseButtonEventArgs & args)
+		{
+		}
+
+		void Control::OnMouseUp(MouseButtonEventArgs & args)
+		{
+		}
+
 		void Control::RefreshDescendantPositionCache(const Point& parent_lefttop_absolute)
 		{
 			auto rect = GetRectRelativeToParent();
@@ -255,6 +284,47 @@ namespace cru {
 			foreachChild([lefttop](Control* c) {
 				c->RefreshDescendantPositionCache(lefttop);
 			});
+		}
+
+		std::list<Control*> GetAncestorList(Control* control)
+		{
+			std::list<Control*> l;
+			while (control != nullptr)
+			{
+				l.push_front(control);
+				control = control->GetParent();
+			}
+			return std::move(l);
+		}
+
+		Control* FindLowestCommonAncestor(Control * left, Control * right)
+		{
+			if (left == nullptr || right == nullptr)
+				return nullptr;
+
+			auto&& left_list = GetAncestorList(left);
+			auto&& right_list = GetAncestorList(right);
+
+			// the root is different
+			if (left_list.front() != right_list.front())
+				return nullptr;
+
+			// find the last same control or the last control (one is the other's ancestor)
+			auto left_i = left_list.cbegin();
+			auto right_i = right_list.cbegin();
+			while (true)
+			{
+				if (left_i == left_list.cend())
+					return *(--left_i);
+				if (right_i == right_list.cend())
+					return *(--right_i);
+				if (*left_i != *right_i)
+					return *(--left_i);
+				++left_i;
+				++right_i;
+			}
+
+			return nullptr;
 		}
 	}
 }

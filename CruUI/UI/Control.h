@@ -3,9 +3,12 @@
 #include "UIBase.h"
 #include "Event.h"
 #include <vector>
+#include <optional>
 
-namespace cru {
-    namespace ui {
+namespace cru
+{
+    namespace ui
+	{
 		class Control;
         class Window;
 
@@ -19,13 +22,15 @@ namespace cru {
         class MouseEventArgs : public UIEventArgs
 		{
         public:
+			// Mouse event without position.
+			MouseEventArgs(Object* sender, Object* origin_sender);
             MouseEventArgs(Object* sender, Object* origin_sender, const Point& point);
             ~MouseEventArgs() override;
 
             Point GetPoint(Control* control);
 
         private:
-            Point point_;
+            std::optional<Point> point_;
         };
 
         class MouseButtonEventArgs : public MouseEventArgs
@@ -52,6 +57,7 @@ namespace cru {
 
         class Control abstract : public Object
 		{
+			friend class Window;
         public:
             Control();
 			~Control() override;
@@ -170,5 +176,9 @@ namespace cru {
 
             bool isMouseInside_ = false;
         };
+
+		// Find the lowest common ancestor.
+		// Retur nullptr if "left" and "right" are not in the same tree.
+		Control* FindLowestCommonAncestor(Control* left, Control* right);
     }
 }

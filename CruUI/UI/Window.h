@@ -53,7 +53,6 @@ namespace cru {
             std::map<HWND, Window*> window_map_;
         };
 
-
         class Window : public Control
 		{
             friend class WindowManager;
@@ -125,6 +124,43 @@ namespace cru {
 
             void OnMouseMoveInternal(POINT point);
             void OnMouseLeaveInternal();
+
+			template<typename EventArgs>
+			using MouseEventMethod = void (Control::*)(EventArgs&);
+
+
+			// Dispatch the mouse event.
+			// This may invoke the "event_method" of the control and its parent and parent's
+			// parent ... (until "last_reciever" if it's not nullptr) with appropriate args.
+			// If "button" is nullptr, then args is a MouseEventArgs with or without position indicated by "point".
+			// Otherwise, args is a MouseButtonEventArgs, in which case point mustn't be nullptr.
+			// "last_reciever" may be used for mouse enter and leave event.
+			template<typename EventArgs>
+			void DispatchMouseEvent(Control* sender, MouseEventMethod<EventArgs> event_method, const Point* point, MouseButton* button, Control* last_reciever = nullptr)
+			{
+				auto control = sender;
+				if (button == nullptr) {
+					while (control != nullptr && control != last_reciever)
+					{
+						std::unique_ptr<MouseEventArgs> args;
+						if (point == nullptr)
+							args = std::make_unique<MouseEventArgs>(control, sender);
+						else
+							args = std::make_unique<MouseEventArgs>(control, sender, *point);
+						(control->*event_method)(*args);
+						control = control->GetParent();
+					}
+				}
+				else
+				{
+					while (control != nullptr && control != last_reciever)
+					{
+						MouseButtonEventArgs args(control, sender, *point, *button);
+						(control->*event_method)(args);
+						control = control->GetParent();
+					}
+				}
+			}
 
         private:
             HWND hwnd_ = 0;
