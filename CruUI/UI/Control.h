@@ -7,46 +7,46 @@
 
 namespace cru
 {
-    namespace ui
+	namespace ui
 	{
 		class Control;
-        class Window;
+		class Window;
 
-        enum class MouseButton
+		enum class MouseButton
 		{
-            Left,
-            Right,
-            Middle
-        };
+			Left,
+			Right,
+			Middle
+		};
 
-        class MouseEventArgs : public UIEventArgs
+		class MouseEventArgs : public UIEventArgs
 		{
-        public:
+		public:
 			// Mouse event without position.
 			MouseEventArgs(Object* sender, Object* origin_sender);
-            MouseEventArgs(Object* sender, Object* origin_sender, const Point& point);
-            ~MouseEventArgs() override;
+			MouseEventArgs(Object* sender, Object* origin_sender, const Point& point);
+			~MouseEventArgs() override;
 
-            Point GetPoint(Control* control);
+			Point GetPoint(Control* control);
 
-        private:
-            std::optional<Point> point_;
-        };
+		private:
+			std::optional<Point> point_;
+		};
 
-        class MouseButtonEventArgs : public MouseEventArgs
+		class MouseButtonEventArgs : public MouseEventArgs
 		{
-        public:
-            MouseButtonEventArgs(Object* sender, Object* origin_sender, const Point& point, MouseButton button);
-            ~MouseButtonEventArgs() override;
+		public:
+			MouseButtonEventArgs(Object* sender, Object* origin_sender, const Point& point, MouseButton button);
+			~MouseButtonEventArgs() override;
 
-            MouseButton GetMouseButton();
+			MouseButton GetMouseButton();
 
-        private:
-            MouseButton button_;
-        };
+		private:
+			MouseButton button_;
+		};
 
-        using MouseEvent = Event<MouseEventArgs>;
-        using MouseButtonEvent = Event<MouseButtonEventArgs>;
+		using MouseEvent = Event<MouseEventArgs>;
+		using MouseButtonEvent = Event<MouseButtonEventArgs>;
 
 		//the position cache
 		struct ControlPositionCache
@@ -55,41 +55,41 @@ namespace cru
 			Point lefttop_position_absolute_;
 		};
 
-        class Control abstract : public Object
+		class Control abstract : public Object
 		{
 			friend class Window;
-        public:
-            Control();
+		public:
+			Control();
 			~Control() override;
 			CRU_NO_COPY_MOVE(Control)
 
-        public:
+		public:
 
 			//*************** region: tree ***************
 
 			//Get parent of control, return nullptr if it has no parent.
-            Control* GetParent();
+			Control* GetParent();
 
 			//Traverse the children
 			void foreachChild(std::function<void(Control*)> predicate);
 			void foreachChild(std::function<FlowControl(Control*)> predicate);
 
-            //Return a vector of all children. This function will create a
+			//Return a vector of all children. This function will create a
 			//temporary copy of vector of children. If you just want to
 			//traverse all children, just call foreachChild.
-            std::vector<Control*> GetChildren();
+			std::vector<Control*> GetChildren();
 
-            //Add a child at tail.
-            void AddChild(Control* control);
+			//Add a child at tail.
+			void AddChild(Control* control);
 
-            //Add a child before the position.
-            void AddChild(Control* control, int position);
+			//Add a child before the position.
+			void AddChild(Control* control, int position);
 
-            //Remove a child.
-            void RemoveChild(Control* child);
+			//Remove a child.
+			void RemoveChild(Control* child);
 
-            //Remove a child at specified position.
-            void RemoveChild(int position);
+			//Remove a child at specified position.
+			void RemoveChild(int position);
 
 			//Get the ancestor of the control.
 			Control* GetAncestor();
@@ -99,12 +99,12 @@ namespace cru
 
 			//*************** region: location and size ***************
 
-            //Get the rect relative to its parent.
-            virtual Rect GetRectRelativeToParent() = 0;
+			//Get the rect relative to its parent.
+			virtual Rect GetRectRelativeToParent() = 0;
 
-            //Set the rect relative to its parent. Remember to
+			//Set the rect relative to its parent. Remember to
 			//call InvalidPositionCache after change position.
-            virtual void SetRectRelativeToParent(const Rect& rect) = 0;
+			virtual void SetRectRelativeToParent(const Rect& rect) = 0;
 
 			//Get the size. Alias for GetRectRelativeToParent().GetSize().
 			Size GetSize();
@@ -130,55 +130,62 @@ namespace cru
 			//*************** region: graphic ***************
 
 			//Draw this control and its child controls.
-            void Draw(ID2D1DeviceContext* device_context);
+			void Draw(ID2D1DeviceContext* device_context);
 
 
 			//*************** region: events ***************
 		public:
-            //Raised when mouse enter the control.
-            MouseEvent mouseEnterEvent;
-            //Raised when mouse is leave the control.
-            MouseEvent mouseLeaveEvent;
-            //Raised when mouse is move in the control.
-            MouseEvent mouseMoveEvent;
-            //Raised when a mouse button is pressed in the control.
-            MouseButtonEvent mouseDownEvent;
-            //Raised when a mouse button is released in the control.
-            MouseButtonEvent mouseUpEvent;
+			//Raised when mouse enter the control.
+			MouseEvent mouseEnterEvent;
+			//Raised when mouse is leave the control.
+			MouseEvent mouseLeaveEvent;
+			//Raised when mouse is move in the control.
+			MouseEvent mouseMoveEvent;
+			//Raised when a mouse button is pressed in the control.
+			MouseButtonEvent mouseDownEvent;
+			//Raised when a mouse button is released in the control.
+			MouseButtonEvent mouseUpEvent;
 
-        protected:
-            //Invoked when a child is added. Overrides should invoke base.
-            virtual void OnAddChild(Control* child);
-            //Invoked when a child is removed. Overrides should invoke base.
-            virtual void OnRemoveChild(Control* child);
+		protected:
+			//Invoked when a child is added. Overrides should invoke base.
+			virtual void OnAddChild(Control* child);
+			//Invoked when a child is removed. Overrides should invoke base.
+			virtual void OnRemoveChild(Control* child);
 
-            //Invoked when the control is attached to a window. Overrides should invoke base.
-            virtual void OnAttachToWindow(Window* window);
-            //Invoked when the control is detached to a window. Overrides should invoke base.
-            virtual void OnDetachToWindow(Window* window);
+			//Invoked when the control is attached to a window. Overrides should invoke base.
+			virtual void OnAttachToWindow(Window* window);
+			//Invoked when the control is detached to a window. Overrides should invoke base.
+			virtual void OnDetachToWindow(Window* window);
 
-            virtual void OnDraw(ID2D1DeviceContext* device_context);
+			//Overrides should invoke base.
+			virtual void OnDraw(ID2D1DeviceContext* device_context);
 
-            virtual void OnMouseEnter(MouseEventArgs& args);
-            virtual void OnMouseLeave(MouseEventArgs& args);
-            virtual void OnMouseMove(MouseEventArgs& args);
-            virtual void OnMouseDown(MouseButtonEventArgs& args);
-            virtual void OnMouseUp(MouseButtonEventArgs& args);
+			//Overrides should invoke base.
+			virtual void OnMouseEnter(MouseEventArgs& args);
+			//Overrides should invoke base.
+			virtual void OnMouseLeave(MouseEventArgs& args);
+			//Overrides should invoke base.
+			virtual void OnMouseMove(MouseEventArgs& args);
+			//Overrides should invoke base.
+			virtual void OnMouseDown(MouseButtonEventArgs& args);
+			//Overrides should invoke base.
+			virtual void OnMouseUp(MouseButtonEventArgs& args);
 
 		private:
+			// A helper reursive function for refreshing position cache.
 			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
 
-        private:
-            Control* parent_ = nullptr;
-            std::vector<Control*> children_{};
+		private:
+			Control * parent_ = nullptr;
+			std::vector<Control*> children_{};
 
 			ControlPositionCache position_cache_{};
 
-            bool isMouseInside_ = false;
-        };
+			bool isMouseInside_ = false;
+		};
 
 		// Find the lowest common ancestor.
 		// Retur nullptr if "left" and "right" are not in the same tree.
 		Control* FindLowestCommonAncestor(Control* left, Control* right);
-    }
+	}
 }
