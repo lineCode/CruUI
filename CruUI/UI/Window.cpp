@@ -279,7 +279,8 @@ namespace cru
 			render_target_->ResizeBuffer(new_width, new_height);
 		}
 
-		void Window::OnMouseMoveInternal(POINT point) {
+		void Window::OnMouseMoveInternal(POINT point)
+		{
 			Point dip_point(
 				graph::PixelToDipX(point.x),
 				graph::PixelToDipY(point.y)
@@ -318,9 +319,12 @@ namespace cru
 				// dispatch mouse enter event.
 				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnter, &dip_point, nullptr, lowest_common_ancestor);
 			}
+
+			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMove, &dip_point, nullptr, nullptr);
 		}
 
-		void Window::OnMouseLeaveInternal() {
+		void Window::OnMouseLeaveInternal()
+		{
 			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, nullptr, nullptr, nullptr);
 			mouse_hover_control_ = nullptr;
 		}
