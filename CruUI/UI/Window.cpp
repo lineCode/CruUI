@@ -212,6 +212,60 @@ namespace cru
 			case WM_ERASEBKGND:
 				result = 1;
 				return true;
+			case WM_LBUTTONDOWN:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Left, point);
+				result = 0;
+				return true;
+			}
+			case WM_LBUTTONUP:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Left, point);
+				result = 0;
+				return true;
+			}
+			case WM_RBUTTONDOWN:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Right, point);
+				result = 0;
+				return true;
+			}
+			case WM_RBUTTONUP:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Right, point);
+				result = 0;
+				return true;
+			}
+			case WM_MBUTTONDOWN:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Middle, point);
+				result = 0;
+				return true;
+			}
+			case WM_MBUTTONUP:
+			{
+				POINT point;
+				point.x = GET_X_LPARAM(l_param);
+				point.y = GET_Y_LPARAM(l_param);
+				OnMouseDownInternal(MouseButton::Middle, point);
+				result = 0;
+				return true;
+			}
 			case WM_SIZE:
 				OnResizeInternal(LOWORD(l_param), HIWORD(l_param));
 				result = 0;
@@ -241,6 +295,17 @@ namespace cru
 			TraverseDescendants([this](Control* control) {
 				this->control_list_.push_back(control);
 			});
+		}
+
+		Control * Window::HitTest(const Point & point)
+		{
+			for (auto i = control_list_.crbegin(); i != control_list_.crend(); ++i) {
+				auto control = *i;
+				if (control->IsPointInside(control->AbsoluteToLocal(point))) {
+					return control;
+				}
+			}
+			return nullptr;
 		}
 
 		RECT Window::GetClientRectPixel() {
@@ -298,14 +363,7 @@ namespace cru
 			}
 
 			//Find the first control that hit test succeed.
-			Control* new_control_mouse_hover = nullptr; // in fact don't need to init because it must be set later.
-			for (auto i = control_list_.crbegin(); i != control_list_.crend(); ++i) {
-				auto control = *i;
-				if (control->IsPointInside(control->AbsoluteToLocal(dip_point))) {
-					new_control_mouse_hover = control;
-					break;
-				}
-			}
+			Control* new_control_mouse_hover = HitTest(dip_point);
 
 			if (new_control_mouse_hover != mouse_hover_control_) //if the mouse-hover-on control changed
 			{
@@ -313,20 +371,44 @@ namespace cru
 				if (mouse_hover_control_ != nullptr) // if last mouse-hover-on control exists
 				{
 					// dispatch mouse leave event.
-					DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, nullptr, nullptr, lowest_common_ancestor);
+					DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, std::nullopt, lowest_common_ancestor);
 				}
 				mouse_hover_control_ = new_control_mouse_hover;
 				// dispatch mouse enter event.
-				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnter, &dip_point, nullptr, lowest_common_ancestor);
+				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnter, dip_point, lowest_common_ancestor);
 			}
 
-			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMove, &dip_point, nullptr, nullptr);
+			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMove, dip_point, nullptr);
 		}
 
 		void Window::OnMouseLeaveInternal()
 		{
-			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, nullptr, nullptr, nullptr);
+			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, std::nullopt, nullptr);
 			mouse_hover_control_ = nullptr;
+		}
+
+		void Window::OnMouseDownInternal(MouseButton button, POINT point)
+		{
+			Point dip_point(
+				graph::PixelToDipX(point.x),
+				graph::PixelToDipY(point.y)
+			);
+
+			auto control = HitTest(dip_point);
+
+			DispatchMouseButtonEvent(control, &Control::OnMouseDown, dip_point, button, nullptr);
+		}
+
+		void Window::OnMouseUpInternal(MouseButton button, POINT point)
+		{
+			Point dip_point(
+				graph::PixelToDipX(point.x),
+				graph::PixelToDipY(point.y)
+			);
+
+			auto control = HitTest(dip_point);
+
+			DispatchMouseButtonEvent(control, &Control::OnMouseUp, dip_point, button, nullptr);
 		}
 	}
 }

@@ -255,22 +255,27 @@ namespace cru {
 
 		void Control::OnMouseEnter(MouseEventArgs & args)
 		{
+			mouseEnterEvent.Raise(args);
 		}
 
 		void Control::OnMouseLeave(MouseEventArgs & args)
 		{
+			mouseLeaveEvent.Raise(args);
 		}
 
 		void Control::OnMouseMove(MouseEventArgs & args)
 		{
+			mouseMoveEvent.Raise(args);
 		}
 
 		void Control::OnMouseDown(MouseButtonEventArgs & args)
 		{
+			mouseDownEvent.Raise(args);
 		}
 
 		void Control::OnMouseUp(MouseButtonEventArgs & args)
 		{
+			mouseUpEvent.Raise(args);
 		}
 
 		void Control::RefreshDescendantPositionCache(const Point& parent_lefttop_absolute)

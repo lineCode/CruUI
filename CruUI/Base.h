@@ -2,6 +2,8 @@
 
 //include system headers
 #include <Windows.h>
+#include <windowsx.h>
+
 #pragma comment(lib, "D3D11.lib")
 #include <d3d11.h>
 
