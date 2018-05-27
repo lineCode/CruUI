@@ -275,27 +275,52 @@ namespace cru {
 
 		void Control::OnMouseEnterCore(MouseEventArgs & args)
 		{
-			mouseEnterEvent.Raise(args);
+			OnMouseEnter(args);
+			mouse_enter_event.Raise(args);
 		}
 
 		void Control::OnMouseLeaveCore(MouseEventArgs & args)
 		{
-			mouseLeaveEvent.Raise(args);
+			OnMouseLeave(args);
+			mouse_leave_event.Raise(args);
 		}
 
 		void Control::OnMouseMoveCore(MouseEventArgs & args)
 		{
-			mouseMoveEvent.Raise(args);
+			OnMouseMove(args);
+			mouse_move_event.Raise(args);
 		}
 
 		void Control::OnMouseDownCore(MouseButtonEventArgs & args)
 		{
-			mouseDownEvent.Raise(args);
+			OnMouseDown(args);
+			mouse_down_event.Raise(args);
 		}
 
 		void Control::OnMouseUpCore(MouseButtonEventArgs & args)
 		{
-			mouseUpEvent.Raise(args);
+			OnMouseUp(args);
+			mouse_up_event.Raise(args);
+		}
+
+		void Control::OnGetFocus(UIEventArgs & args)
+		{
+		}
+
+		void Control::OnLoseFocus(UIEventArgs & args)
+		{
+		}
+
+		void Control::OnGetFocusCore(UIEventArgs & args)
+		{
+			OnGetFocus(args);
+			get_focus_event.Raise(args);
+		}
+
+		void Control::OnLoseFocusCore(UIEventArgs & args)
+		{
+			OnLoseFocus(args);
+			lose_focus_event.Raise(args);
 		}
 
 		void Control::RefreshDescendantPositionCache(const Point& parent_lefttop_absolute)

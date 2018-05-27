@@ -2,6 +2,7 @@
 
 #include "Control.h"
 
+#include <utility>
 #include <map>
 #include <list>
 #include <memory>
@@ -118,6 +119,9 @@ namespace cru {
 			//Get the most top control at "point".
 			Control* HitTest(const Point& point);
 
+			//Request focus for specified control.
+			bool RequestFocusFor(Control* control);
+
 		private:
 			//Get the client rect in pixel.
 			RECT GetClientRectPixel();
@@ -135,36 +139,22 @@ namespace cru {
 			using MouseEventMethod = void (Control::*)(EventArgs&);
 
 
-			// Dispatch the mouse event.
+			// Dispatch the event.
+			// 
 			// This will invoke the "event_method" of the control and its parent and parent's
 			// parent ... (until "last_reciever" if it's not nullptr) with appropriate args.
-			// Args is a MouseEventArgs with or without position indicated by "point".
-			// "last_reciever" may be used for mouse enter and leave event.
-			template<typename EventArgs>
-			void DispatchMouseEvent(Control* sender, MouseEventMethod<EventArgs> event_method, std::optional<Point> point, Control* last_reciever = nullptr)
+			//
+			// Args is of type "EventArgs". The first init argument is "sender", which is
+			// automatically bound to each recieving control. The second init argument is
+			// "original_sender", which is unchanged. And "args" will be perfectly forwarded
+			// as the rest arguments.
+			template<typename EventArgs, typename... Args>
+			void DispatchEvent(Control* original_sender, MouseEventMethod<EventArgs> event_method, Control* last_reciever, Args&&... args)
 			{
-				auto control = sender;
+				auto control = original_sender;
 				while (control != nullptr && control != last_reciever)
 				{
-					std::unique_ptr<MouseEventArgs> args;
-					if (point.has_value())
-						args = std::make_unique<MouseEventArgs>(control, sender);
-					else
-						args = std::make_unique<MouseEventArgs>(control, sender, point.value());
-					(control->*event_method)(*args);
-					control = control->GetParent();
-				}
-			}
-
-			// Dispatch the mouse button event.
-			// This will invoke the "event_method" of the control and its parent and parent's parent ... with appropriate args.
-			template<typename EventArgs>
-			void DispatchMouseButtonEvent(Control* sender, MouseEventMethod<EventArgs> event_method, Point point, MouseButton button, Control* last_reciever = nullptr)
-			{
-				auto control = sender;
-				while (control != nullptr && control != last_reciever)
-				{
-					MouseButtonEventArgs args(control, sender, point, button);
+					EventArgs args(control, original_sender, std::forward<Args>(args)...);
 					(control->*event_method)(args);
 					control = control->GetParent();
 				}
@@ -174,9 +164,11 @@ namespace cru {
 			HWND hwnd_ = 0;
 			std::shared_ptr<graph::WindowRenderTarget> render_target_{};
 
-			std::list<Control*> control_list_;
+			std::list<Control*> control_list_{};
 
 			Control* mouse_hover_control_ = nullptr;
+
+			Control* focus_control_ = nullptr;
 		};
 	}
 }

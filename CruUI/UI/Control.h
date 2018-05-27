@@ -45,6 +45,7 @@ namespace cru
 			MouseButton button_;
 		};
 
+		using UIEvent = Event<UIEventArgs>;
 		using MouseEvent = Event<MouseEventArgs>;
 		using MouseButtonEvent = Event<MouseButtonEventArgs>;
 
@@ -136,15 +137,19 @@ namespace cru
 			//*************** region: events ***************
 		public:
 			//Raised when mouse enter the control.
-			MouseEvent mouseEnterEvent;
+			MouseEvent mouse_enter_event;
 			//Raised when mouse is leave the control.
-			MouseEvent mouseLeaveEvent;
+			MouseEvent mouse_leave_event;
 			//Raised when mouse is move in the control.
-			MouseEvent mouseMoveEvent;
+			MouseEvent mouse_move_event;
 			//Raised when a mouse button is pressed in the control.
-			MouseButtonEvent mouseDownEvent;
+			MouseButtonEvent mouse_down_event;
 			//Raised when a mouse button is released in the control.
-			MouseButtonEvent mouseUpEvent;
+			MouseButtonEvent mouse_up_event;
+
+			UIEvent get_focus_event;
+			UIEvent lose_focus_event;
+
 
 		protected:
 			//Invoked when a child is added. Overrides should invoke base.
@@ -159,6 +164,16 @@ namespace cru
 
 			virtual void OnDraw(ID2D1DeviceContext* device_context);
 
+
+			// For a event, the window event system will first dispatch event to core functions.
+			// Therefore for particular controls, you should do essential actions in core functions,
+			// and override version should invoke base version. The base core function
+			// in "Control" class will call corresponding non-core function and call "Raise" on
+			// event objects. So user custom actions should be done by overriding non-core function
+			// and calling the base version is optional.
+
+
+			//*************** region: mouse event ***************
 			virtual void OnMouseEnter(MouseEventArgs& args);
 			virtual void OnMouseLeave(MouseEventArgs& args);
 			virtual void OnMouseMove(MouseEventArgs& args);
@@ -170,6 +185,14 @@ namespace cru
 			virtual void OnMouseMoveCore(MouseEventArgs& args);
 			virtual void OnMouseDownCore(MouseButtonEventArgs& args);
 			virtual void OnMouseUpCore(MouseButtonEventArgs& args);
+
+
+			//*************** region: focus event ***************
+			virtual void OnGetFocus(UIEventArgs& args);
+			virtual void OnLoseFocus(UIEventArgs& args);
+
+			virtual void OnGetFocusCore(UIEventArgs& args);
+			virtual void OnLoseFocusCore(UIEventArgs& args);
 
 		private:
 			// A helper recursive function for refreshing position cache.
@@ -185,7 +208,7 @@ namespace cru
 		};
 
 		// Find the lowest common ancestor.
-		// Retur nullptr if "left" and "right" are not in the same tree.
+		// Return nullptr if "left" and "right" are not in the same tree.
 		Control* FindLowestCommonAncestor(Control* left, Control* right);
 	}
 }

@@ -308,6 +308,22 @@ namespace cru
 			return nullptr;
 		}
 
+		bool Window::RequestFocusFor(Control * control)
+		{
+			if (focus_control_ == control)
+				return true;
+
+			if (focus_control_ != nullptr)
+				DispatchEvent(focus_control_, &Control::OnLoseFocusCore, nullptr);
+
+			focus_control_ = control;
+
+			if (control != nullptr)
+				DispatchEvent(control, &Control::OnGetFocusCore, nullptr);
+
+			return true;
+		}
+
 		RECT Window::GetClientRectPixel() {
 			RECT rect{ };
 			GetClientRect(hwnd_, &rect);
@@ -371,19 +387,19 @@ namespace cru
 				if (mouse_hover_control_ != nullptr) // if last mouse-hover-on control exists
 				{
 					// dispatch mouse leave event.
-					DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, std::nullopt, lowest_common_ancestor);
+					DispatchEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, lowest_common_ancestor);
 				}
 				mouse_hover_control_ = new_control_mouse_hover;
 				// dispatch mouse enter event.
-				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnterCore, dip_point, lowest_common_ancestor);
+				DispatchEvent(new_control_mouse_hover, &Control::OnMouseEnterCore, lowest_common_ancestor, dip_point);
 			}
 
-			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMoveCore, dip_point, nullptr);
+			DispatchEvent(new_control_mouse_hover, &Control::OnMouseMoveCore, nullptr, dip_point);
 		}
 
 		void Window::OnMouseLeaveInternal()
 		{
-			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, std::nullopt, nullptr);
+			DispatchEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, nullptr);
 			mouse_hover_control_ = nullptr;
 		}
 
@@ -396,7 +412,7 @@ namespace cru
 
 			auto control = HitTest(dip_point);
 
-			DispatchMouseButtonEvent(control, &Control::OnMouseDownCore, dip_point, button, nullptr);
+			DispatchEvent(control, &Control::OnMouseDownCore, nullptr, dip_point, button);
 		}
 
 		void Window::OnMouseUpInternal(MouseButton button, POINT point)
@@ -408,7 +424,7 @@ namespace cru
 
 			auto control = HitTest(dip_point);
 
-			DispatchMouseButtonEvent(control, &Control::OnMouseUpCore, dip_point, button, nullptr);
+			DispatchEvent(control, &Control::OnMouseUpCore, nullptr, dip_point, button);
 		}
 	}
 }
