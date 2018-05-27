@@ -212,6 +212,14 @@ namespace cru
 			case WM_ERASEBKGND:
 				result = 1;
 				return true;
+			case WM_SETFOCUS:
+				OnSetFocusInternal();
+				result = 0;
+				return true;
+			case WM_KILLFOCUS:
+				OnKillFocusInternal();
+				result = 0;
+				return true;
 			case WM_LBUTTONDOWN:
 			{
 				POINT point;
@@ -310,18 +318,34 @@ namespace cru
 
 		bool Window::RequestFocusFor(Control * control)
 		{
+			if (control == nullptr)
+				throw std::invalid_argument("The control to request focus can't be null. You can set it as the window.");
+
+			if (!IsWindowValid())
+				return false;
+
+			if (!window_focus_)
+			{
+				::SetFocus(hwnd_);
+				focus_control_ = control;
+				return true; // event dispatch will be done in window message handling function "OnSetFocusInternal".
+			}
+
 			if (focus_control_ == control)
 				return true;
 
-			if (focus_control_ != nullptr)
-				DispatchEvent(focus_control_, &Control::OnLoseFocusCore, nullptr);
+			DispatchEvent(focus_control_, &Control::OnLoseFocusCore, nullptr);
 
 			focus_control_ = control;
 
-			if (control != nullptr)
-				DispatchEvent(control, &Control::OnGetFocusCore, nullptr);
+			DispatchEvent(control, &Control::OnGetFocusCore, nullptr);
 
 			return true;
+		}
+
+		Control* Window::GetFocusControl()
+		{
+			return focus_control_;
 		}
 
 		RECT Window::GetClientRectPixel() {
@@ -358,6 +382,20 @@ namespace cru
 
 		void Window::OnResizeInternal(int new_width, int new_height) {
 			render_target_->ResizeBuffer(new_width, new_height);
+		}
+
+		void Window::OnSetFocusInternal()
+		{
+			window_focus_ = true;
+			if (focus_control_ != nullptr)
+				DispatchEvent(focus_control_, &Control::OnGetFocusCore, nullptr);
+		}
+
+		void Window::OnKillFocusInternal()
+		{
+			window_focus_ = false;
+			if (focus_control_ != nullptr)
+				DispatchEvent(focus_control_, &Control::OnLoseFocusCore, nullptr);
 		}
 
 		void Window::OnMouseMoveInternal(POINT point)

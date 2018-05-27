@@ -122,6 +122,9 @@ namespace cru {
 			//Request focus for specified control.
 			bool RequestFocusFor(Control* control);
 
+			//Get the control that has focus.
+			Control* GetFocusControl();
+
 		private:
 			//Get the client rect in pixel.
 			RECT GetClientRectPixel();
@@ -129,6 +132,9 @@ namespace cru {
 			void OnDestroyInternal();
 			void OnPaintInternal();
 			void OnResizeInternal(int new_width, int new_height);
+
+			void OnSetFocusInternal();
+			void OnKillFocusInternal();
 
 			void OnMouseMoveInternal(POINT point);
 			void OnMouseLeaveInternal();
@@ -168,7 +174,8 @@ namespace cru {
 
 			Control* mouse_hover_control_ = nullptr;
 
-			Control* focus_control_ = nullptr;
+			bool window_focus_ = false;
+			Control* focus_control_ = this; // "focus_control_" can't be nullptr
 		};
 	}
 }

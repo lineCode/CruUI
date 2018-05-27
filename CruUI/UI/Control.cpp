@@ -144,10 +144,20 @@ namespace cru {
 
 		Control* Control::GetAncestor()
 		{
+			// if attached to window, the window is the ancestor.
+			if (window_)
+				return window_;
+
+			// otherwise find the ancestor
 			auto ancestor = this;
 			while (auto parent = ancestor->GetParent())
 				ancestor = parent;
 			return ancestor;
+		}
+
+		Window * Control::GetWindow()
+		{
+			return window_;
 		}
 
 		void TraverseDescendants_(Control* control,
@@ -215,6 +225,24 @@ namespace cru {
 			device_context->SetTransform(old_transform);
 		}
 
+		bool Control::RequestFocus()
+		{
+			auto window = GetWindow();
+			if (window == nullptr)
+				return false;
+
+			return window->RequestFocusFor(this);
+		}
+
+		bool Control::HasFocus()
+		{
+			auto window = GetWindow();
+			if (window = nullptr)
+				return false;
+
+			return window->GetFocusControl() == this;
+		}
+
 		void Control::OnAddChild(Control* child)
 		{
 			if (auto window = dynamic_cast<Window*>(GetAncestor()))
@@ -240,12 +268,12 @@ namespace cru {
 
 		void Control::OnAttachToWindow(Window* window)
 		{
-
+			window_ = window;
 		}
 
 		void Control::OnDetachToWindow(Window * window)
 		{
-
+			window_ = nullptr;
 		}
 
 		void Control::OnDraw(ID2D1DeviceContext * device_context)

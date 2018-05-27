@@ -95,6 +95,9 @@ namespace cru
 			//Get the ancestor of the control.
 			Control* GetAncestor();
 
+			//Get the window if attached, otherwise, return nullptr.
+			Window* GetWindow();
+
 			//Traverse the tree rooted the control.
 			void TraverseDescendants(const std::function<void(Control*)>& predicate);
 
@@ -132,6 +135,12 @@ namespace cru
 
 			//Draw this control and its child controls.
 			void Draw(ID2D1DeviceContext* device_context);
+
+			//*************** region: focus ***************
+
+			bool RequestFocus();
+
+			bool HasFocus();
 
 
 			//*************** region: events ***************
@@ -199,6 +208,8 @@ namespace cru
 			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
 
 		private:
+			Window * window_ = nullptr;
+
 			Control * parent_ = nullptr;
 			std::vector<Control*> children_{};
 
