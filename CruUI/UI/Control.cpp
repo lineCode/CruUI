@@ -255,25 +255,45 @@ namespace cru {
 
 		void Control::OnMouseEnter(MouseEventArgs & args)
 		{
-			mouseEnterEvent.Raise(args);
 		}
 
 		void Control::OnMouseLeave(MouseEventArgs & args)
 		{
-			mouseLeaveEvent.Raise(args);
 		}
 
 		void Control::OnMouseMove(MouseEventArgs & args)
 		{
-			mouseMoveEvent.Raise(args);
 		}
 
 		void Control::OnMouseDown(MouseButtonEventArgs & args)
 		{
-			mouseDownEvent.Raise(args);
 		}
 
 		void Control::OnMouseUp(MouseButtonEventArgs & args)
+		{
+		}
+
+		void Control::OnMouseEnterCore(MouseEventArgs & args)
+		{
+			mouseEnterEvent.Raise(args);
+		}
+
+		void Control::OnMouseLeaveCore(MouseEventArgs & args)
+		{
+			mouseLeaveEvent.Raise(args);
+		}
+
+		void Control::OnMouseMoveCore(MouseEventArgs & args)
+		{
+			mouseMoveEvent.Raise(args);
+		}
+
+		void Control::OnMouseDownCore(MouseButtonEventArgs & args)
+		{
+			mouseDownEvent.Raise(args);
+		}
+
+		void Control::OnMouseUpCore(MouseButtonEventArgs & args)
 		{
 			mouseUpEvent.Raise(args);
 		}

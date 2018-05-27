@@ -371,19 +371,19 @@ namespace cru
 				if (mouse_hover_control_ != nullptr) // if last mouse-hover-on control exists
 				{
 					// dispatch mouse leave event.
-					DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, std::nullopt, lowest_common_ancestor);
+					DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, std::nullopt, lowest_common_ancestor);
 				}
 				mouse_hover_control_ = new_control_mouse_hover;
 				// dispatch mouse enter event.
-				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnter, dip_point, lowest_common_ancestor);
+				DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseEnterCore, dip_point, lowest_common_ancestor);
 			}
 
-			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMove, dip_point, nullptr);
+			DispatchMouseEvent(new_control_mouse_hover, &Control::OnMouseMoveCore, dip_point, nullptr);
 		}
 
 		void Window::OnMouseLeaveInternal()
 		{
-			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeave, std::nullopt, nullptr);
+			DispatchMouseEvent(mouse_hover_control_, &Control::OnMouseLeaveCore, std::nullopt, nullptr);
 			mouse_hover_control_ = nullptr;
 		}
 
@@ -396,7 +396,7 @@ namespace cru
 
 			auto control = HitTest(dip_point);
 
-			DispatchMouseButtonEvent(control, &Control::OnMouseDown, dip_point, button, nullptr);
+			DispatchMouseButtonEvent(control, &Control::OnMouseDownCore, dip_point, button, nullptr);
 		}
 
 		void Window::OnMouseUpInternal(MouseButton button, POINT point)
@@ -408,7 +408,7 @@ namespace cru
 
 			auto control = HitTest(dip_point);
 
-			DispatchMouseButtonEvent(control, &Control::OnMouseUp, dip_point, button, nullptr);
+			DispatchMouseButtonEvent(control, &Control::OnMouseUpCore, dip_point, button, nullptr);
 		}
 	}
 }

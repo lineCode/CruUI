@@ -157,22 +157,22 @@ namespace cru
 			//Invoked when the control is detached to a window. Overrides should invoke base.
 			virtual void OnDetachToWindow(Window* window);
 
-			//Overrides should invoke base.
 			virtual void OnDraw(ID2D1DeviceContext* device_context);
 
-			//Overrides should invoke base.
 			virtual void OnMouseEnter(MouseEventArgs& args);
-			//Overrides should invoke base.
 			virtual void OnMouseLeave(MouseEventArgs& args);
-			//Overrides should invoke base.
 			virtual void OnMouseMove(MouseEventArgs& args);
-			//Overrides should invoke base.
 			virtual void OnMouseDown(MouseButtonEventArgs& args);
-			//Overrides should invoke base.
 			virtual void OnMouseUp(MouseButtonEventArgs& args);
 
+			virtual void OnMouseEnterCore(MouseEventArgs& args);
+			virtual void OnMouseLeaveCore(MouseEventArgs& args);
+			virtual void OnMouseMoveCore(MouseEventArgs& args);
+			virtual void OnMouseDownCore(MouseButtonEventArgs& args);
+			virtual void OnMouseUpCore(MouseButtonEventArgs& args);
+
 		private:
-			// A helper reursive function for refreshing position cache.
+			// A helper recursive function for refreshing position cache.
 			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
 
 		private:
