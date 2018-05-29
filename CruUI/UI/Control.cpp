@@ -41,6 +41,22 @@ namespace cru {
 
 		}
 
+		DrawEventArgs::DrawEventArgs(Object * sender, Object * original_sender, ID2D1DeviceContext * device_context)
+			: UIEventArgs(sender, original_sender), device_context_(device_context)
+		{
+
+		}
+
+		DrawEventArgs::~DrawEventArgs()
+		{
+
+		}
+
+		ID2D1DeviceContext * DrawEventArgs::GetDeviceContext()
+		{
+			return device_context_;
+		}
+
 		MouseButton MouseButtonEventArgs::GetMouseButton()
 		{
 			return button_;
@@ -218,6 +234,8 @@ namespace cru {
 			device_context->SetTransform(old_transform * D2D1::Matrix3x2F::Translation(rect.left, rect.top));
 
 			OnDraw(device_context);
+			DrawEventArgs args(this, this, device_context);
+			draw_event.Raise(args);
 
 			for (auto child : GetChildren())
 				child->Draw(device_context);

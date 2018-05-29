@@ -156,6 +156,8 @@
     <ClInclude Include="Event.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="Graph\Graph.h" />
+    <ClInclude Include="random.hpp" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="UI\Control.h" />
     <ClInclude Include="UI\Window.h" />
     <ClInclude Include="UI\UIBase.h" />
@@ -167,6 +169,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="Graph\Graph.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="UI\Control.cpp" />
     <ClCompile Include="UI\Window.cpp" />
     <ClCompile Include="UI\UIBase.cpp" />

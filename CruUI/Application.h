@@ -14,6 +14,8 @@ namespace cru {
         class GraphManager;
     }
 
+	class TimerManager;
+
     class Application : public Object {
     public:
         static Application* GetInstance();
@@ -31,13 +33,15 @@ namespace cru {
 
         ui::WindowManager* GetWindowManager();
         graph::GraphManager* GetGraphManager();
+		TimerManager* GetTimerManager();
 
-        HINSTANCE GetInstanceHandle();
+		HINSTANCE GetInstanceHandle();
 
     private:
         HINSTANCE h_instance_;
         std::unique_ptr<ui::WindowManager> window_manager_;
         std::unique_ptr<graph::GraphManager> graph_manager_;
+		std::unique_ptr<TimerManager> timer_manager_;
     };
 
 

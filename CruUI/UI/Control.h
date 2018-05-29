@@ -45,9 +45,22 @@ namespace cru
 			MouseButton button_;
 		};
 
+		class DrawEventArgs : public UIEventArgs
+		{
+		public:
+			DrawEventArgs(Object* sender, Object* original_sender, ID2D1DeviceContext* device_context);
+			~DrawEventArgs();
+
+			ID2D1DeviceContext* GetDeviceContext();
+
+		private:
+			ID2D1DeviceContext * device_context_;
+		};
+
 		using UIEvent = Event<UIEventArgs>;
 		using MouseEvent = Event<MouseEventArgs>;
 		using MouseButtonEvent = Event<MouseButtonEventArgs>;
+		using DrawEvent = Event<DrawEventArgs>;
 
 		//the position cache
 		struct ControlPositionCache
@@ -159,6 +172,7 @@ namespace cru
 			UIEvent get_focus_event;
 			UIEvent lose_focus_event;
 
+			DrawEvent draw_event;
 
 		protected:
 			//Invoked when a child is added. Overrides should invoke base.
