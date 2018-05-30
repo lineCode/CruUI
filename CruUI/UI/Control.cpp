@@ -41,6 +41,11 @@ namespace cru {
 
 		}
 
+		MouseButton MouseButtonEventArgs::GetMouseButton()
+		{
+			return button_;
+		}
+
 		DrawEventArgs::DrawEventArgs(Object * sender, Object * original_sender, ID2D1DeviceContext * device_context)
 			: UIEventArgs(sender, original_sender), device_context_(device_context)
 		{
@@ -57,9 +62,25 @@ namespace cru {
 			return device_context_;
 		}
 
-		MouseButton MouseButtonEventArgs::GetMouseButton()
+		SizeChangedEventArgs::SizeChangedEventArgs(Object * sender, Object * original_sender, const Size & old_size, const Size & new_size)
+			: UIEventArgs(sender, original_sender), old_size_(old_size), new_size_(new_size)
 		{
-			return button_;
+
+		}
+
+		SizeChangedEventArgs::~SizeChangedEventArgs()
+		{
+
+		}
+
+		Size SizeChangedEventArgs::GetOldSize()
+		{
+			return old_size_;
+		}
+
+		Size SizeChangedEventArgs::GetNewSize()
+		{
+			return new_size_;
 		}
 
 		Control::Control()
@@ -191,12 +212,7 @@ namespace cru {
 			TraverseDescendants_(this, predicate);
 		}
 
-		Size Control::GetSize()
-		{
-			return GetRectRelativeToParent().GetSize();
-		}
-
-		Point Control::GetLefttopAbsolute()
+		Point Control::GetPositionAbsolute()
 		{
 			return position_cache_.lefttop_position_absolute_;
 		}
@@ -218,11 +234,31 @@ namespace cru {
 			Point point;
 			auto parent = this;
 			while (parent = parent->GetParent()) {
-				auto r = parent->GetRectRelativeToParent();
-				point.x += r.left;
-				point.y += r.top;
+				auto p = parent->GetPositionRelative();
+				point.x += p.x;
+				point.y += p.y;
 			}
 			RefreshDescendantPositionCache(point);
+		}
+
+		Thickness Control::GetPadding()
+		{
+			return padding_;
+		}
+
+		void Control::SetPadding(const Thickness & padding)
+		{
+			padding_ = padding;
+		}
+
+		Thickness Control::GetMargin()
+		{
+			return margin_;
+		}
+
+		void Control::SetMargin(const Thickness & margin)
+		{
+			margin_ = margin;
 		}
 
 		void Control::Draw(ID2D1DeviceContext* device_context)
@@ -230,8 +266,8 @@ namespace cru {
 			D2D1::Matrix3x2F old_transform;
 			device_context->GetTransform(&old_transform);
 
-			auto rect = GetRectRelativeToParent();
-			device_context->SetTransform(old_transform * D2D1::Matrix3x2F::Translation(rect.left, rect.top));
+			auto position = GetPositionRelative();
+			device_context->SetTransform(old_transform * D2D1::Matrix3x2F::Translation(position.x, position.y));
 
 			OnDraw(device_context);
 			DrawEventArgs args(this, this, device_context);
@@ -321,12 +357,14 @@ namespace cru {
 
 		void Control::OnMouseEnterCore(MouseEventArgs & args)
 		{
+			is_mouse_inside_ = true;
 			OnMouseEnter(args);
 			mouse_enter_event.Raise(args);
 		}
 
 		void Control::OnMouseLeaveCore(MouseEventArgs & args)
 		{
+			is_mouse_inside_ = false;
 			OnMouseLeave(args);
 			mouse_leave_event.Raise(args);
 		}
@@ -371,10 +409,10 @@ namespace cru {
 
 		void Control::RefreshDescendantPositionCache(const Point& parent_lefttop_absolute)
 		{
-			auto rect = GetRectRelativeToParent();
+			auto position = GetPositionRelative();
 			Point lefttop(
-				parent_lefttop_absolute.x + rect.left,
-				parent_lefttop_absolute.y + rect.top
+				parent_lefttop_absolute.x + position.x,
+				parent_lefttop_absolute.y + position.x
 			);
 			position_cache_.lefttop_position_absolute_ = lefttop;
 			foreachChild([lefttop](Control* c) {

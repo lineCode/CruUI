@@ -12,6 +12,25 @@ namespace cru
 		class Control;
 		class Window;
 
+		struct Thickness
+		{
+			Thickness() : Thickness(0) { }
+			Thickness(float width)
+				: left(width), top(width), right(width), bottom(width) { }
+
+			Thickness(float left, float top, float right, float bottom)
+				: left(left), top(top), right(right), bottom(bottom) { }
+
+			Thickness(const Thickness&) = default;
+			Thickness& operator = (const Thickness&) = default;
+			~Thickness() = default;
+
+			float left;
+			float top;
+			float right;
+			float bottom;
+		};
+
 		enum class MouseButton
 		{
 			Left,
@@ -55,6 +74,20 @@ namespace cru
 
 		private:
 			ID2D1DeviceContext * device_context_;
+		};
+
+		class SizeChangedEventArgs : public UIEventArgs
+		{
+		public:
+			SizeChangedEventArgs(Object* sender, Object* original_sender, const Size& old_size, const Size& new_size);
+			~SizeChangedEventArgs();
+
+			Size GetOldSize();
+			Size GetNewSize();
+
+		private:
+			Size old_size_;
+			Size new_size_;
 		};
 
 		using UIEvent = Event<UIEventArgs>;
@@ -116,21 +149,16 @@ namespace cru
 
 			//*************** region: location and size ***************
 
-			//Get the rect relative to its parent.
-			virtual Rect GetRectRelativeToParent() = 0;
+			//Get the lefttop relative to its parent.
+			virtual Point GetPositionRelative() = 0;
 
-			//Set the rect relative to its parent. Remember to
-			//call InvalidPositionCache after change position.
-			virtual void SetRectRelativeToParent(const Rect& rect) = 0;
-
-			//Get the size. Alias for GetRectRelativeToParent().GetSize().
-			Size GetSize();
+			//Get the size.
+			virtual Size GetSize() = 0;
 
 			//Get lefttop relative to ancestor. This is only valid when
 			//attached to window. Notice that the value is cached.
-			//You can invalidate and recalculate it by calling
-			//InvalidatePositionCache. 
-			Point GetLefttopAbsolute();
+			//You can invalidate and recalculate it by calling "InvalidatePositionCache". 
+			Point GetPositionAbsolute();
 
 			//Local point to absolute point.
 			Point LocalToAbsolute(const Point& point);
@@ -143,6 +171,18 @@ namespace cru
 
 			//Test whether a point is inside the control in local coordinate.
 			virtual bool IsPointInside(const Point& point) = 0;
+
+
+			//*************** region: padding and margin ***************
+
+			Thickness GetPadding();
+
+			void SetPadding(const Thickness& padding);
+
+			Thickness GetMargin();
+
+			void SetMargin(const Thickness& margin);
+
 
 			//*************** region: graphic ***************
 
@@ -229,7 +269,11 @@ namespace cru
 
 			ControlPositionCache position_cache_{};
 
-			bool isMouseInside_ = false;
+			bool is_mouse_inside_ = false;
+
+
+			Thickness padding_;
+			Thickness margin_;
 		};
 
 		// Find the lowest common ancestor.

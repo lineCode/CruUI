@@ -101,13 +101,11 @@ namespace cru {
 			//Return false if the message is not handled.
 			bool HandleWindowMessage(HWND hwnd, int msg, WPARAM w_param, LPARAM l_param, LRESULT& result);
 
-			//Get the rect relative to its parent.
-			//For a window, the rect is of the client area and its lefttop is always (0, 0).
-			Rect GetRectRelativeToParent() override;
+			//Always return (0, 0) for a window.
+			Point GetPositionRelative() override;
 
-			//Set the rect relative to its parent.
-			//For a window, it is to set the client rect. The lefttop of the rect is ignored.
-			void SetRectRelativeToParent(const Rect& rect) override;
+			//Get the size of client area for a window.
+			Size GetSize() override;
 
 			//Test whether a point is inside the control in local coordinate.
 			bool IsPointInside(const Point& point) override;

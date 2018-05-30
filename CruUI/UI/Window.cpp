@@ -286,16 +286,18 @@ namespace cru
 			return false;
 		}
 
-		Rect Window::GetRectRelativeToParent() {
-			return Rect(Point(), GetClientSize());
+		Point Window::GetPositionRelative()
+		{
+			return Point();
 		}
 
-		void Window::SetRectRelativeToParent(const Rect & rect) {
-			SetClientSize(rect.GetSize());
+		Size Window::GetSize()
+		{
+			return GetClientSize();
 		}
 
 		bool Window::IsPointInside(const Point & point) {
-			return GetRectRelativeToParent().IsPointInside(point);
+			return Rect(Point(), GetSize()).IsPointInside(point);
 		}
 
 		void Window::RefreshControlList() {
