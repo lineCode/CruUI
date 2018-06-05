@@ -31,6 +31,14 @@ namespace cru
 			float bottom;
 		};
 
+		struct MeasureSize
+		{
+			float width;
+			float height;
+			bool unrestricted_width;
+			bool unrestricted_height;
+		};
+
 		enum class MouseButton
 		{
 			Left,
@@ -148,12 +156,21 @@ namespace cru
 			void TraverseDescendants(const std::function<void(Control*)>& predicate);
 
 			//*************** region: location and size ***************
+			// Location and size part must be isolated from layout part.
+			// All the operations in this part must be done independently.
+			// And layout part must use api of this part.
 
 			//Get the lefttop relative to its parent.
-			virtual Point GetPositionRelative() = 0;
+			virtual Point GetPositionRelative();
+
+			//Set the lefttop relative to its parent.
+			virtual void SetPositionRelative(const Point& position);
 
 			//Get the size.
-			virtual Size GetSize() = 0;
+			virtual Size GetSize();
+
+			//Set the size
+			virtual void SetSize(const Size& size);
 
 			//Get lefttop relative to ancestor. This is only valid when
 			//attached to window. Notice that the value is cached.
@@ -166,11 +183,20 @@ namespace cru
 			//Absolute point to local point.
 			Point AbsoluteToLocal(const Point& point);
 
-			//Refresh the position cache of this and all descendents.
-			void InvalidatePositionCache();
 
-			//Test whether a point is inside the control in local coordinate.
-			virtual bool IsPointInside(const Point& point) = 0;
+			//*************** region: layout ***************
+
+			void Measure(const MeasureSize& size);
+
+			void Layout(const Rect& rect);
+
+			void RecalculateLayout();
+
+			// Get the saved desired size.
+			MeasureSize GetDesiredSize();
+
+			// Set the saved desired size.
+			void SetDesiredSize(const MeasureSize& size);
 
 
 			//*************** region: padding and margin ***************
@@ -257,6 +283,21 @@ namespace cru
 			virtual void OnGetFocusCore(UIEventArgs& args);
 			virtual void OnLoseFocusCore(UIEventArgs& args);
 
+
+			//*************** region: layout event ***************
+
+			// overrides remember to call "Measure" on all children.
+			virtual void OnMeasure(const MeasureSize& size) = 0;
+
+			// overrides remember to call "Layout" on all children.
+			virtual void OnLayout(const Rect& rect) = 0;
+
+
+
+		protected:
+			//Refresh the position cache of this and all descendents.
+			void RecalculatePositionCache();
+
 		private:
 			// A helper recursive function for refreshing position cache.
 			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
@@ -267,6 +308,9 @@ namespace cru
 			Control * parent_ = nullptr;
 			std::vector<Control*> children_{};
 
+			Point position_;
+			Size size_;
+
 			ControlPositionCache position_cache_{};
 
 			bool is_mouse_inside_ = false;
@@ -274,10 +318,15 @@ namespace cru
 
 			Thickness padding_;
 			Thickness margin_;
+
+			MeasureSize desired_size_;
 		};
 
 		// Find the lowest common ancestor.
 		// Return nullptr if "left" and "right" are not in the same tree.
 		Control* FindLowestCommonAncestor(Control* left, Control* right);
+
+		// Return the ancestor if one control is the ancestor of the other one, otherwise nullptr.
+		Control* HaveChildParentRelationship(Control* left, Control* right);
 	}
 }

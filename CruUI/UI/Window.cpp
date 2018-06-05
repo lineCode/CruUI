@@ -94,6 +94,42 @@ namespace cru
 				return find_result->second;
 		}
 
+		WindowLayoutManager::WindowLayoutManager()
+		{
+		}
+
+		WindowLayoutManager::~WindowLayoutManager()
+		{
+		}
+
+		void WindowLayoutManager::InvalidateControlPositionCache(Control * control)
+		{
+			for (auto i = cache_invalid_controls_.cbegin(); i != cache_invalid_controls_.cend(); ++i)
+			{
+				if (control == *i)
+					continue;		// Can't break!!! Because the "i" might be inserted just now and there may be controls following.
+				auto ancestor = HaveChildParentRelationship(*i, control);
+				if (ancestor == control) // if ancestor is "control" replace "i" with "control".
+				{
+					cache_invalid_controls_.erase(i);
+					cache_invalid_controls_.insert(control);
+					// Can't break, because there may be other controls that are descendants of "control".
+				}
+				else if (ancestor == nullptr) // if they have no relationship, just insert "control".
+				{
+					cache_invalid_controls_.insert(control);
+				}
+				else // if find a ancestor of "control", then no need to continue to scan.
+				{
+					break;
+				}
+			}
+
+			InvokeLater([this] {
+				if () //TODO!!!
+			})
+		}
+
 		Window::Window() : control_list_({ this }) {
 			auto app = Application::GetInstance();
 			hwnd_ = CreateWindowEx(0,

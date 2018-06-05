@@ -3,6 +3,7 @@
 #include "Control.h"
 
 #include <utility>
+#include <set>
 #include <map>
 #include <list>
 #include <memory>
@@ -55,6 +56,20 @@ namespace cru {
 			std::map<HWND, Window*> window_map_;
 		};
 
+
+		class WindowLayoutManager : public Object
+		{
+			friend class Window;
+		public:
+			WindowLayoutManager();
+			~WindowLayoutManager() override;
+
+			void InvalidateControlPositionCache(Control* control);
+
+		private:
+			std::set<Control*> cache_invalid_controls_;
+		};
+
 		class Window : public Control
 		{
 			friend class WindowManager;
@@ -104,11 +119,10 @@ namespace cru {
 			//Always return (0, 0) for a window.
 			Point GetPositionRelative() override;
 
+
+
 			//Get the size of client area for a window.
 			Size GetSize() override;
-
-			//Test whether a point is inside the control in local coordinate.
-			bool IsPointInside(const Point& point) override;
 
 			//Refresh control list.
 			//It should be invoked every time a control is added or removed from the tree.

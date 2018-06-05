@@ -212,6 +212,16 @@ namespace cru {
 			TraverseDescendants_(this, predicate);
 		}
 
+		Point Control::GetPositionRelative()
+		{
+			return position_;
+		}
+
+		void Control::SetPositionRelative(const Point & position)
+		{
+
+		}
+
 		Point Control::GetPositionAbsolute()
 		{
 			return position_cache_.lefttop_position_absolute_;
@@ -229,7 +239,7 @@ namespace cru {
 				point.y - position_cache_.lefttop_position_absolute_.y);
 		}
 
-		void Control::InvalidatePositionCache()
+		void Control::RecalculatePositionCache()
 		{
 			Point point;
 			auto parent = this;
@@ -241,6 +251,33 @@ namespace cru {
 			RefreshDescendantPositionCache(point);
 		}
 
+		void Control::Measure(const MeasureSize & size)
+		{
+			OnMeasure(size);
+		}
+
+		void Control::Layout(const Rect & rect)
+		{
+			SetPositionRelative(rect.GetLefttop());
+			SetSize(rect.GetSize());
+			OnLayout(rect);
+		}
+
+		void Control::RecalculateLayout()
+		{
+			OnLayout(Rect(GetPositionRelative(), GetSize()));
+		}
+
+		MeasureSize Control::GetDesiredSize()
+		{
+			return desired_size_;
+		}
+
+		void Control::SetDesiredSize(const MeasureSize & size)
+		{
+			desired_size_ = size;
+		}
+
 		Thickness Control::GetPadding()
 		{
 			return padding_;
@@ -249,6 +286,7 @@ namespace cru {
 		void Control::SetPadding(const Thickness & padding)
 		{
 			padding_ = padding;
+			RecalculateLayout();
 		}
 
 		Thickness Control::GetMargin()
@@ -259,6 +297,7 @@ namespace cru {
 		void Control::SetMargin(const Thickness & margin)
 		{
 			margin_ = margin;
+			RecalculateLayout();
 		}
 
 		void Control::Draw(ID2D1DeviceContext* device_context)
@@ -305,7 +344,7 @@ namespace cru {
 					control->OnAttachToWindow(window);
 				});
 				window->RefreshControlList();
-				InvalidatePositionCache();
+				RecalculatePositionCache();
 			}
 		}
 
@@ -458,6 +497,27 @@ namespace cru {
 				++right_i;
 			}
 
+			return nullptr;
+		}
+
+		Control * HaveChildParentRelationship(Control * left, Control * right)
+		{
+			//Search up along the trunk from "left". Return if find "right".
+			auto control = left;
+			while (control != nullptr)
+			{
+				if (control == right)
+					return control;
+				control = control->GetParent();
+			}
+			//Search up along the trunk from "right". Return if find "left".
+			control = right;
+			while (control != nullptr)
+			{
+				if (control == left)
+					return control;
+				control = control->GetParent();
+			}
 			return nullptr;
 		}
 	}
