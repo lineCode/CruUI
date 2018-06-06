@@ -104,30 +104,26 @@ namespace cru
 
 		void WindowLayoutManager::InvalidateControlPositionCache(Control * control)
 		{
+			if (cache_invalid_controls_.count(control) == 1)
+				return;
+
+			// find descendant then erase it; find ancestor then just return.
 			for (auto i = cache_invalid_controls_.cbegin(); i != cache_invalid_controls_.cend(); ++i)
 			{
-				if (control == *i)
-					continue;		// Can't break!!! Because the "i" might be inserted just now and there may be controls following.
-				auto ancestor = HaveChildParentRelationship(*i, control);
-				if (ancestor == control) // if ancestor is "control" replace "i" with "control".
-				{
+				if (HaveChildParentRelationship(*i, control) == control)
 					cache_invalid_controls_.erase(i);
-					cache_invalid_controls_.insert(control);
-					// Can't break, because there may be other controls that are descendants of "control".
-				}
-				else if (ancestor == nullptr) // if they have no relationship, just insert "control".
-				{
-					cache_invalid_controls_.insert(control);
-				}
-				else // if find a ancestor of "control", then no need to continue to scan.
-				{
-					break;
-				}
+				else
+					return; // find a ancestor of "control", just return
 			}
 
-			InvokeLater([this] {
-				if () //TODO!!!
-			})
+			cache_invalid_controls_.insert(control);
+
+			if (cache_invalid_controls_.size() == 1) // when insert just now.
+			{
+				InvokeLater([] {
+					//TODO!
+				});
+			}
 		}
 
 		Window::Window() : control_list_({ this }) {
