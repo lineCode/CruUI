@@ -113,6 +113,7 @@ namespace cru
 		class Control abstract : public Object
 		{
 			friend class Window;
+			friend class WindowLayoutManager;
 		public:
 			Control();
 			~Control() override;
@@ -155,8 +156,8 @@ namespace cru
 			//Traverse the tree rooted the control.
 			void TraverseDescendants(const std::function<void(Control*)>& predicate);
 
-			//*************** region: location and size ***************
-			// Location and size part must be isolated from layout part.
+			//*************** region: position and size ***************
+			// Position and size part must be isolated from layout part.
 			// All the operations in this part must be done independently.
 			// And layout part must use api of this part.
 
@@ -183,6 +184,7 @@ namespace cru
 			//Absolute point to local point.
 			Point AbsoluteToLocal(const Point& point);
 
+			bool IsPointInside(const Point& point);
 
 			//*************** region: layout ***************
 
@@ -292,15 +294,6 @@ namespace cru
 			// overrides remember to call "Layout" on all children.
 			virtual void OnLayout(const Rect& rect) = 0;
 
-
-
-		protected:
-			//Refresh the position cache of this and all descendents.
-			void RecalculatePositionCache();
-
-		private:
-			// A helper recursive function for refreshing position cache.
-			void RefreshDescendantPositionCache(const Point& parent_lefttop_absolute);
 
 		private:
 			Window * window_ = nullptr;

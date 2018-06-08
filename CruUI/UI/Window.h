@@ -59,12 +59,24 @@ namespace cru {
 
 		class WindowLayoutManager : public Object
 		{
-			friend class Window;
 		public:
 			WindowLayoutManager();
 			~WindowLayoutManager() override;
 
+			//Mark position cache of the control and its descendants invalid,
+			//(which is saved as an auto-managed list internal)
+			//and send a message to refresh them.
 			void InvalidateControlPositionCache(Control* control);
+
+			//Refresh position cache of the control and its descendants whose cache
+			//has been marked as invalid.
+			void RefreshInvalidControlPositionCache();
+
+			//Refresh position cache of the control and its descendants immediately.
+			static void RefreshControlPositionCache(Control* control);
+
+		private:
+			static void RefreshControlPositionCacheInternal(Control* control, const Point& parent_lefttop_absolute);
 
 		private:
 			std::set<Control*> cache_invalid_controls_;
@@ -79,11 +91,20 @@ namespace cru {
 			CRU_NO_COPY_MOVE(Window)
 
 		public:
+			//*************** region: managers ***************
+			WindowLayoutManager* GetLayoutManager();
+
+
+			//*************** region: handle ***************
+
 			//Get the handle of the window. Return null if window is invalid.
 			HWND GetWindowHandle();
 
 			//Return if the window is still valid, that is, hasn't been closed or destroyed.
 			bool IsWindowValid();
+
+
+			//*************** region: window operations ***************
 
 			//Close and destroy the window if the window is valid.
 			void Close();
@@ -116,13 +137,23 @@ namespace cru {
 			//Return false if the message is not handled.
 			bool HandleWindowMessage(HWND hwnd, int msg, WPARAM w_param, LPARAM l_param, LRESULT& result);
 
+
+			//*************** region: position and size ***************
+
 			//Always return (0, 0) for a window.
 			Point GetPositionRelative() override;
 
-
+			//This method has no effect for a window.
+			void SetPositionRelative(const Point& position) override;
 
 			//Get the size of client area for a window.
 			Size GetSize() override;
+
+			//Set the size of client area for a window.
+			void SetSize(const Size& size);
+
+
+			//*************** region: features ***************
 
 			//Refresh control list.
 			//It should be invoked every time a control is added or removed from the tree.
@@ -131,15 +162,24 @@ namespace cru {
 			//Get the most top control at "point".
 			Control* HitTest(const Point& point);
 
+			
+			//*************** region: focus ***************
+
 			//Request focus for specified control.
 			bool RequestFocusFor(Control* control);
 
 			//Get the control that has focus.
 			Control* GetFocusControl();
 
+
 		private:
+			//*************** region: native operations ***************
+
 			//Get the client rect in pixel.
 			RECT GetClientRectPixel();
+
+
+			//*************** region: native messages ***************
 
 			void OnDestroyInternal();
 			void OnPaintInternal();
@@ -153,9 +193,12 @@ namespace cru {
 			void OnMouseDownInternal(MouseButton button, POINT point);
 			void OnMouseUpInternal(MouseButton button, POINT point);
 
-			template<typename EventArgs>
-			using MouseEventMethod = void (Control::*)(EventArgs&);
 
+
+			//*************** region: event dispatcher helper ***************
+
+			template<typename EventArgs>
+			using EventMethod = void (Control::*)(EventArgs&);
 
 			// Dispatch the event.
 			// 
@@ -167,7 +210,7 @@ namespace cru {
 			// "original_sender", which is unchanged. And "args" will be perfectly forwarded
 			// as the rest arguments.
 			template<typename EventArgs, typename... Args>
-			void DispatchEvent(Control* original_sender, MouseEventMethod<EventArgs> event_method, Control* last_reciever, Args&&... args)
+			void DispatchEvent(Control* original_sender, EventMethod<EventArgs> event_method, Control* last_reciever, Args&&... args)
 			{
 				auto control = original_sender;
 				while (control != nullptr && control != last_reciever)
@@ -179,6 +222,8 @@ namespace cru {
 			}
 
 		private:
+			std::unique_ptr<WindowLayoutManager> layout_manager_;
+
 			HWND hwnd_ = 0;
 			std::shared_ptr<graph::WindowRenderTarget> render_target_{};
 

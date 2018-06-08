@@ -118,15 +118,47 @@ namespace cru
 
 			cache_invalid_controls_.insert(control);
 
-			if (cache_invalid_controls_.size() == 1) // when insert just now.
+			if (cache_invalid_controls_.size() == 1) // when insert just now and not repeat to "InvokeLater".
 			{
-				InvokeLater([] {
-					//TODO!
+				InvokeLater([this] {
+					RefreshInvalidControlPositionCache();
 				});
 			}
 		}
 
-		Window::Window() : control_list_({ this }) {
+		void WindowLayoutManager::RefreshInvalidControlPositionCache()
+		{
+			for (auto i : cache_invalid_controls_)
+				RefreshControlPositionCache(i);
+			cache_invalid_controls_.clear();
+		}
+
+		void WindowLayoutManager::RefreshControlPositionCache(Control * control)
+		{
+			Point point;
+			auto parent = control;
+			while (parent = parent->GetParent()) {
+				auto p = parent->GetPositionRelative();
+				point.x += p.x;
+				point.y += p.y;
+			}
+			RefreshControlPositionCacheInternal(control, point);
+		}
+
+		void WindowLayoutManager::RefreshControlPositionCacheInternal(Control * control, const Point & parent_lefttop_absolute)
+		{
+			auto position = control->GetPositionRelative();
+			Point lefttop(
+				parent_lefttop_absolute.x + position.x,
+				parent_lefttop_absolute.y + position.x
+			);
+			control->position_cache_.lefttop_position_absolute_ = lefttop;
+			control->foreachChild([lefttop](Control* c) {
+				RefreshControlPositionCacheInternal(c, lefttop);
+			});
+		}
+
+		Window::Window() : layout_manager_(new WindowLayoutManager()), control_list_({ this }) {
 			auto app = Application::GetInstance();
 			hwnd_ = CreateWindowEx(0,
 				app->GetWindowManager()->GetGeneralWindowClass()->GetName(),
@@ -145,6 +177,16 @@ namespace cru
 
 		Window::~Window() {
 			Close();
+		}
+
+		WindowLayoutManager* Window::GetLayoutManager()
+		{
+			return layout_manager_.get();
+		}
+
+		HWND Window::GetWindowHandle()
+		{
+			return hwnd_;
 		}
 
 		bool Window::IsWindowValid() {
@@ -323,13 +365,19 @@ namespace cru
 			return Point();
 		}
 
+		void Window::SetPositionRelative(const Point & position)
+		{
+
+		}
+
 		Size Window::GetSize()
 		{
 			return GetClientSize();
 		}
 
-		bool Window::IsPointInside(const Point & point) {
-			return Rect(Point(), GetSize()).IsPointInside(point);
+		void Window::SetSize(const Size & size)
+		{
+			SetClientSize(size);
 		}
 
 		void Window::RefreshControlList() {

@@ -219,7 +219,24 @@ namespace cru {
 
 		void Control::SetPositionRelative(const Point & position)
 		{
+			position_ = position;
+			if (auto window = GetWindow())
+			{
+				window->GetLayoutManager()->InvalidateControlPositionCache(this);
+				window->Repaint();
+			}
+		}
 
+		Size Control::GetSize()
+		{
+			return size_;
+		}
+
+		void Control::SetSize(const Size & size)
+		{
+			size_ = size;
+			if (auto window = GetWindow())
+				window->Repaint();
 		}
 
 		Point Control::GetPositionAbsolute()
@@ -239,16 +256,10 @@ namespace cru {
 				point.y - position_cache_.lefttop_position_absolute_.y);
 		}
 
-		void Control::RecalculatePositionCache()
+		bool Control::IsPointInside(const Point & point)
 		{
-			Point point;
-			auto parent = this;
-			while (parent = parent->GetParent()) {
-				auto p = parent->GetPositionRelative();
-				point.x += p.x;
-				point.y += p.y;
-			}
-			RefreshDescendantPositionCache(point);
+			auto size = GetSize();
+			return point.x >= 0.0f && point.x < size.width && point.y >= 0.0f && point.y < size.height;
 		}
 
 		void Control::Measure(const MeasureSize & size)
@@ -344,7 +355,7 @@ namespace cru {
 					control->OnAttachToWindow(window);
 				});
 				window->RefreshControlList();
-				RecalculatePositionCache();
+				
 			}
 		}
 
@@ -444,19 +455,6 @@ namespace cru {
 		{
 			OnLoseFocus(args);
 			lose_focus_event.Raise(args);
-		}
-
-		void Control::RefreshDescendantPositionCache(const Point& parent_lefttop_absolute)
-		{
-			auto position = GetPositionRelative();
-			Point lefttop(
-				parent_lefttop_absolute.x + position.x,
-				parent_lefttop_absolute.y + position.x
-			);
-			position_cache_.lefttop_position_absolute_ = lefttop;
-			foreachChild([lefttop](Control* c) {
-				c->RefreshDescendantPositionCache(lefttop);
-			});
 		}
 
 		std::list<Control*> GetAncestorList(Control* control)
