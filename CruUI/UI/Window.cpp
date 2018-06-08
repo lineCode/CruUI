@@ -153,7 +153,7 @@ namespace cru
 				parent_lefttop_absolute.y + position.x
 			);
 			control->position_cache_.lefttop_position_absolute_ = lefttop;
-			control->foreachChild([lefttop](Control* c) {
+			control->ForeachChild([lefttop](Control* c) {
 				RefreshControlPositionCacheInternal(c, lefttop);
 			});
 		}

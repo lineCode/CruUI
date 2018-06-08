@@ -37,6 +37,15 @@ namespace cru
 			float height;
 			bool unrestricted_width;
 			bool unrestricted_height;
+
+			//Return given length if unrestricted otherwise saved length of both width and height.
+			Size Resolve(float width_given, float height_given) const
+			{
+				return Size(
+					unrestricted_width ? width_given : width,
+					unrestricted_height ? height_given : height
+				);
+			}
 		};
 
 		enum class MouseButton
@@ -127,12 +136,12 @@ namespace cru
 			Control* GetParent();
 
 			//Traverse the children
-			void foreachChild(std::function<void(Control*)> predicate);
-			void foreachChild(std::function<FlowControl(Control*)> predicate);
+			void ForeachChild(std::function<void(Control*)> predicate);
+			void ForeachChild(std::function<FlowControl(Control*)> predicate);
 
 			//Return a vector of all children. This function will create a
 			//temporary copy of vector of children. If you just want to
-			//traverse all children, just call foreachChild.
+			//traverse all children, just call ForeachChild.
 			std::vector<Control*> GetChildren();
 
 			//Add a child at tail.
@@ -195,10 +204,10 @@ namespace cru
 			void RecalculateLayout();
 
 			// Get the saved desired size.
-			MeasureSize GetDesiredSize();
+			Size GetDesiredSize();
 
 			// Set the saved desired size.
-			void SetDesiredSize(const MeasureSize& size);
+			void SetDesiredSize(const Size& size);
 
 
 			//*************** region: padding and margin ***************
@@ -289,10 +298,13 @@ namespace cru
 			//*************** region: layout event ***************
 
 			// overrides remember to call "Measure" on all children.
-			virtual void OnMeasure(const MeasureSize& size) = 0;
+			// default behaviour is to set desired size as "size" or 0 if unrestricted
+			// and pass "size" to all children.
+			virtual void OnMeasure(const MeasureSize& size);
 
 			// overrides remember to call "Layout" on all children.
-			virtual void OnLayout(const Rect& rect) = 0;
+			// default behaviour is to put all child controls at (0, 0).
+			virtual void OnLayout(const Rect& rect);
 
 
 		private:
@@ -303,6 +315,7 @@ namespace cru
 
 			Point position_;
 			Size size_;
+			Size desired_size_;
 
 			ControlPositionCache position_cache_{};
 
@@ -311,8 +324,6 @@ namespace cru
 
 			Thickness padding_;
 			Thickness margin_;
-
-			MeasureSize desired_size_;
 		};
 
 		// Find the lowest common ancestor.

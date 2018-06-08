@@ -98,13 +98,13 @@ namespace cru {
 			return this->parent_;
 		}
 
-		void Control::foreachChild(std::function<void(Control*)> predicate)
+		void Control::ForeachChild(std::function<void(Control*)> predicate)
 		{
 			for (auto child : children_)
 				predicate(child);
 		}
 
-		void Control::foreachChild(std::function<FlowControl(Control*)> predicate)
+		void Control::ForeachChild(std::function<FlowControl(Control*)> predicate)
 		{
 			for (auto child : children_)
 			{
@@ -201,7 +201,7 @@ namespace cru {
 			const std::function<void(Control*)>& predicate)
 		{
 			predicate(control);
-			control->foreachChild([control, predicate](Control* c) {
+			control->ForeachChild([control, predicate](Control* c) {
 				TraverseDescendants_(c, predicate);
 			});
 		}
@@ -279,12 +279,12 @@ namespace cru {
 			OnLayout(Rect(GetPositionRelative(), GetSize()));
 		}
 
-		MeasureSize Control::GetDesiredSize()
+		Size Control::GetDesiredSize()
 		{
 			return desired_size_;
 		}
 
-		void Control::SetDesiredSize(const MeasureSize & size)
+		void Control::SetDesiredSize(const Size & size)
 		{
 			desired_size_ = size;
 		}
@@ -455,6 +455,21 @@ namespace cru {
 		{
 			OnLoseFocus(args);
 			lose_focus_event.Raise(args);
+		}
+
+		void Control::OnMeasure(const MeasureSize & size)
+		{
+			SetDesiredSize(size.Resolve(0.0f, 0.0f));
+			ForeachChild([size](Control* control) {
+				control->Measure(size);
+			});
+		}
+
+		void Control::OnLayout(const Rect & rect)
+		{
+			ForeachChild([rect](Control* control) {
+				control->Layout(Rect(Point(), control->GetDesiredSize()));
+			});
 		}
 
 		std::list<Control*> GetAncestorList(Control* control)
