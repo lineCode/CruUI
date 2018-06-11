@@ -2,6 +2,7 @@
 #include "Base.h"
 #include "UIBase.h"
 #include "Event.h"
+#include <cmath>
 #include <vector>
 #include <optional>
 
@@ -35,15 +36,25 @@ namespace cru
 		{
 			float width;
 			float height;
-			bool unrestricted_width;
-			bool unrestricted_height;
+			bool undefined_width;
+			bool undefined_height;
+
+			MeasureSize() : undefined_width(true), undefined_height(true) { }
 
 			//Return given length if unrestricted otherwise saved length of both width and height.
 			Size Resolve(float width_given, float height_given) const
 			{
 				return Size(
-					unrestricted_width ? width_given : width,
-					unrestricted_height ? height_given : height
+					undefined_width ? width_given : width,
+					undefined_height ? height_given : height
+				);
+			}
+
+			Size ResolveAsMax(float width_given, float height_given) const
+			{
+				return Size(
+					undefined_width ? std::min(width_given, width) : width,
+					undefined_height ? std::min(height_given, height) : height
 				);
 			}
 		};
@@ -176,10 +187,10 @@ namespace cru
 			//Set the lefttop relative to its parent.
 			virtual void SetPositionRelative(const Point& position);
 
-			//Get the size.
+			//Get the actual size.
 			virtual Size GetSize();
 
-			//Set the size
+			//Set the actual size directly without relayout.
 			virtual void SetSize(const Size& size);
 
 			//Get lefttop relative to ancestor. This is only valid when
@@ -202,6 +213,10 @@ namespace cru
 			void Layout(const Rect& rect);
 
 			void RecalculateLayout();
+
+			MeasureSize GetPreferredSize();
+
+			void SetPreferredSize(const MeasureSize& size);
 
 			// Get the saved desired size.
 			Size GetDesiredSize();
@@ -298,12 +313,10 @@ namespace cru
 			//*************** region: layout event ***************
 
 			// overrides remember to call "Measure" on all children.
-			// default behaviour is to set desired size as "size" or 0 if unrestricted
-			// and pass "size" to all children.
 			virtual void OnMeasure(const MeasureSize& size);
 
 			// overrides remember to call "Layout" on all children.
-			// default behaviour is to put all child controls at (0, 0).
+			// default behaviour is to put all child controls at (0, 0) with desired size as actual size.
 			virtual void OnLayout(const Rect& rect);
 
 
@@ -315,6 +328,7 @@ namespace cru
 
 			Point position_;
 			Size size_;
+			MeasureSize preferred_size_;
 			Size desired_size_;
 
 			ControlPositionCache position_cache_{};

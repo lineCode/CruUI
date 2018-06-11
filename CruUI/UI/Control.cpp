@@ -279,6 +279,16 @@ namespace cru {
 			OnLayout(Rect(GetPositionRelative(), GetSize()));
 		}
 
+		MeasureSize Control::GetPreferredSize()
+		{
+			return preferred_size_;
+		}
+
+		void Control::SetPreferredSize(const MeasureSize & size)
+		{
+			preferred_size_ = size;
+		}
+
 		Size Control::GetDesiredSize()
 		{
 			return desired_size_;
@@ -459,9 +469,32 @@ namespace cru {
 
 		void Control::OnMeasure(const MeasureSize & size)
 		{
-			SetDesiredSize(size.Resolve(0.0f, 0.0f));
-			ForeachChild([size](Control* control) {
-				control->Measure(size);
+			auto preferred_measure_size = GetPreferredSize();
+			auto preferred_size = preferred_measure_size.Resolve(0.0f, 0.0f);
+
+			auto padding = GetPadding();
+			auto margin = GetMargin();
+			auto total_width = preferred_size.width + (padding.left + padding.right + margin.left + margin.right);
+			auto total_height = preferred_size.height + (padding.top + padding.bottom + margin.top + margin.bottom);
+
+			auto desired_size = size.ResolveAsMax(total_width, total_height);
+
+			SetDesiredSize(desired_size);
+
+			MeasureSize content_size;
+			if (!size.undefined_width || !preferred_measure_size.undefined_width)
+			{
+				content_size.undefined_width = false;
+				content_size.width = std::max(desired_size.width - (padding.left + padding.right + margin.left + margin.right), 0.0f);
+			}
+			if (!size.undefined_height || !preferred_measure_size.undefined_height)
+			{
+				content_size.undefined_height = false;
+				content_size.height = std::max(desired_size.height - (padding.top + padding.bottom + margin.top + margin.bottom), 0.0f);
+			}
+
+			ForeachChild([content_size](Control* control) {
+				control->Measure(content_size);
 			});
 		}
 
