@@ -43,6 +43,10 @@ namespace cru {
                 return Point(left, top);
             }
 
+			Point GetRightbottom() const {
+				return Point(left + width, top + height);
+			}
+
             Size GetSize() const {
                 return Size(width, height);
             }
@@ -59,6 +63,25 @@ namespace cru {
             float top = 0.0f;
             float width = 0.0f;
             float height = 0.0f;
+        };
+
+        struct Thickness
+        {
+            Thickness() : Thickness(0) { }
+            Thickness(float width)
+                : left(width), top(width), right(width), bottom(width) { }
+
+            Thickness(float left, float top, float right, float bottom)
+                : left(left), top(top), right(right), bottom(bottom) { }
+
+            Thickness(const Thickness&) = default;
+            Thickness& operator = (const Thickness&) = default;
+            ~Thickness() = default;
+
+            float left;
+            float top;
+            float right;
+            float bottom;
         };
 
 		class UIEventArgs : public BasicEventArgs

@@ -23,6 +23,8 @@
 #include <string>
 #include <stdexcept>
 
+#include <type_traits>
+
 
 //handy macros for copy control
 #define CRU_NO_COPY(className) \
@@ -62,4 +64,7 @@ namespace cru
 		Continue,
 		Break
 	};
+
+	template <class T, class U>
+	constexpr bool decays_to = std::is_convertible_v<std::decay_t<T>*, U*>;
 }
