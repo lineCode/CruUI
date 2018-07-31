@@ -17,10 +17,49 @@ There is three mode in measure: `MatchParent`, `WrapContent`, `Exactly`.
 
 `max*` specify the max length of a dimension and `min*` specify the min length of a dimension. They are of higher priority of `width` and `height`. Calculated size should be adjusted according to the four properties.
 
-## steps
+## structure
 
-A structure `MeaureLength` has several 
+### enum `MeasureMode`
+``` c++
+enum class MeasureMode
+{
+    WrapContent,
+    MatchParent,
+    Exactly
+};
+```
 
-A `Control` has several functions as following.
+### struct `MeasureLength`
+``` c++
+struct MeaureLength // with optional constructor
+{
+    double length;
+    MeasureMode mode;
+};
+```
 
-1. `void Measure(const MeasureSize& size)`
+### struct `MeaureSize`
+``` c++
+struct MeasureSize
+{
+    MeasureLength width;
+    MeasureLength height;
+};
+```
+### interface `ILayoutable`
+``` c++
+struct ILayoutable : virtual Interface
+{
+    // Get lefttop relative to parent.
+    virtual Point GetPosition() = 0;
+
+    // Set lefttop relative to parent.
+    virtual void SetPosition(const Point& point) = 0;
+
+    // Get size.
+    virtual Size GetSize() = 0;
+
+    // Set size.
+    virtual void SetSize(const Size& size) = 0;
+};
+```

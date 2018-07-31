@@ -21,6 +21,8 @@ namespace cru {
 			WindowClass(const std::wstring& name, WNDPROC window_proc, HINSTANCE hinstance);
 			~WindowClass() override;
 
+            CRU_NO_COPY_MOVE(WindowClass)
+
 			const wchar_t* GetName();
 			ATOM GetAtom();
 
@@ -34,6 +36,8 @@ namespace cru {
 		public:
 			WindowManager();
 			~WindowManager() override;
+
+            CRU_NO_COPY_MOVE(WindowManager)
 
 			//Get the general window class for creating ordinary window.
 			WindowClass* GetGeneralWindowClass();
@@ -62,6 +66,8 @@ namespace cru {
 		public:
 			WindowLayoutManager();
 			~WindowLayoutManager() override;
+
+            CRU_NO_COPY_MOVE(WindowLayoutManager)
 
 			//Mark position cache of the control and its descendants invalid,
 			//(which is saved as an auto-managed list internal)
@@ -150,7 +156,7 @@ namespace cru {
 			Size GetSize() override;
 
 			//Set the size of client area for a window.
-			void SetSize(const Size& size);
+			void SetSize(const Size& size) override;
 
 
 			//*************** region: features ***************
@@ -215,8 +221,8 @@ namespace cru {
 				auto control = original_sender;
 				while (control != nullptr && control != last_reciever)
 				{
-					EventArgs args(control, original_sender, std::forward<Args>(args)...);
-					(control->*event_method)(args);
+					EventArgs event_args(control, original_sender, std::forward<Args>(args)...);
+					(control->*event_method)(event_args);
 					control = control->GetParent();
 				}
 			}
@@ -224,7 +230,7 @@ namespace cru {
 		private:
 			std::unique_ptr<WindowLayoutManager> layout_manager_;
 
-			HWND hwnd_ = 0;
+			HWND hwnd_ = nullptr;
 			std::shared_ptr<graph::WindowRenderTarget> render_target_{};
 
 			std::list<Control*> control_list_{};

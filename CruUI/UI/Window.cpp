@@ -69,7 +69,7 @@ namespace cru
 		}
 
 		void WindowManager::RegisterWindow(HWND hwnd, Window * window) {
-			auto find_result = window_map_.find(hwnd);
+			const auto find_result = window_map_.find(hwnd);
 			if (find_result != window_map_.end())
 				throw std::runtime_error("The hwnd is already in the map.");
 
@@ -77,7 +77,7 @@ namespace cru
 		}
 
 		void WindowManager::UnregisterWindow(HWND hwnd) {
-			auto find_result = window_map_.find(hwnd);
+			const auto find_result = window_map_.find(hwnd);
 			if (find_result == window_map_.end())
 				throw std::runtime_error("The hwnd is not in the map.");
 			window_map_.erase(find_result);
@@ -137,8 +137,8 @@ namespace cru
 		{
 			Point point;
 			auto parent = control;
-			while (parent = parent->GetParent()) {
-				auto p = parent->GetPositionRelative();
+			while ((parent = parent->GetParent())) {
+				const auto p = parent->GetPositionRelative();
 				point.x += p.x;
 				point.y += p.y;
 			}
@@ -147,12 +147,12 @@ namespace cru
 
 		void WindowLayoutManager::RefreshControlPositionCacheInternal(Control * control, const Point & parent_lefttop_absolute)
 		{
-			auto position = control->GetPositionRelative();
+			const auto position = control->GetPositionRelative();
 			Point lefttop(
 				parent_lefttop_absolute.x + position.x,
 				parent_lefttop_absolute.y + position.x
 			);
-			control->position_cache_.lefttop_position_absolute_ = lefttop;
+			control->position_cache_.lefttop_position_absolute = lefttop;
 			control->ForeachChild([lefttop](Control* c) {
 				RefreshControlPositionCacheInternal(c, lefttop);
 			});
@@ -221,7 +221,7 @@ namespace cru
 			if (!IsWindowValid())
 				return Size();
 
-			auto pixel_rect = GetClientRectPixel();
+			const auto pixel_rect = GetClientRectPixel();
 			return Size(
 				graph::PixelToDipX(pixel_rect.right),
 				graph::PixelToDipY(pixel_rect.bottom)
@@ -230,8 +230,8 @@ namespace cru
 
 		void Window::SetClientSize(const Size & size) {
 			if (IsWindowValid()) {
-				auto window_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_STYLE));
-				auto window_ex_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_EXSTYLE));
+				const auto window_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_STYLE));
+				const auto window_ex_style = static_cast<DWORD>(GetWindowLongPtr(hwnd_, GWL_EXSTYLE));
 
 				RECT rect;
 				rect.left = 0;
@@ -356,8 +356,9 @@ namespace cru
 				OnDestroyInternal();
 				result = 0;
 				return true;
+			default: 
+                return false;
 			}
-			return false;
 		}
 
 		Point Window::GetPositionRelative()
@@ -499,11 +500,11 @@ namespace cru
 			}
 
 			//Find the first control that hit test succeed.
-			Control* new_control_mouse_hover = HitTest(dip_point);
+		    const auto new_control_mouse_hover = HitTest(dip_point);
 
 			if (new_control_mouse_hover != mouse_hover_control_) //if the mouse-hover-on control changed
 			{
-				auto lowest_common_ancestor = FindLowestCommonAncestor(mouse_hover_control_, new_control_mouse_hover);
+				const auto lowest_common_ancestor = FindLowestCommonAncestor(mouse_hover_control_, new_control_mouse_hover);
 				if (mouse_hover_control_ != nullptr) // if last mouse-hover-on control exists
 				{
 					// dispatch mouse leave event.
@@ -530,7 +531,7 @@ namespace cru
 				graph::PixelToDipY(point.y)
 			);
 
-			auto control = HitTest(dip_point);
+			const auto control = HitTest(dip_point);
 
 			DispatchEvent(control, &Control::OnMouseDownCore, nullptr, dip_point, button);
 		}
@@ -542,7 +543,7 @@ namespace cru
 				graph::PixelToDipY(point.y)
 			);
 
-			auto control = HitTest(dip_point);
+			const auto control = HitTest(dip_point);
 
 			DispatchEvent(control, &Control::OnMouseUpCore, nullptr, dip_point, button);
 		}

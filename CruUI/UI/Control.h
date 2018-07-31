@@ -2,10 +2,7 @@
 #include "Base.h"
 #include "UIBase.h"
 #include "Event.h"
-#include <cmath>
-#include <utility>
 #include <vector>
-#include <cassert>
 
 namespace cru
 {
@@ -23,7 +20,7 @@ namespace cru
                 MatchParent
             };
 
-            MeasureLength(double length = 0.0, MeasureMode mode = Exactly)
+            explicit MeasureLength(const double length = 0.0, const MeasureMode mode = Exactly)
                 : length(length), mode(mode)
             {
 
@@ -42,6 +39,10 @@ namespace cru
         struct BasicLayoutParams
         {
             BasicLayoutParams() = default;
+            BasicLayoutParams(const BasicLayoutParams&) = default;
+            BasicLayoutParams(BasicLayoutParams&&) = default;
+            BasicLayoutParams& operator = (const BasicLayoutParams&) = default;
+            BasicLayoutParams& operator = (BasicLayoutParams&&) = default;
             virtual ~BasicLayoutParams() = default;
 
             MeasureSize size;
@@ -54,24 +55,33 @@ namespace cru
             Middle
         };
 
-        class MouseEventArgs : public UIEventArgs
+        class MouseEventArgs : public UiEventArgs
         {
         public:
             // Mouse event without position.
             MouseEventArgs(Object* sender, Object* origin_sender);
             MouseEventArgs(Object* sender, Object* origin_sender, const Point& point);
-            ~MouseEventArgs() override;
+            MouseEventArgs(const MouseEventArgs& other) = default;
+            MouseEventArgs(MouseEventArgs&& other) = default;
+            MouseEventArgs& operator=(const MouseEventArgs& other) = default;
+            MouseEventArgs& operator=(MouseEventArgs&& other) = default;
+            ~MouseEventArgs() override =default;
 
             Point GetPoint(Control* control);
 
         private:
-            Point* point_;
+            bool has_point_;
+            Point point_;
         };
 
         class MouseButtonEventArgs : public MouseEventArgs
         {
         public:
             MouseButtonEventArgs(Object* sender, Object* origin_sender, const Point& point, MouseButton button);
+            MouseButtonEventArgs(const MouseButtonEventArgs& other) = default;
+            MouseButtonEventArgs(MouseButtonEventArgs&& other) = default;
+            MouseButtonEventArgs& operator=(const MouseButtonEventArgs& other) = default;
+            MouseButtonEventArgs& operator=(MouseButtonEventArgs&& other) = default;
             ~MouseButtonEventArgs() override;
 
             MouseButton GetMouseButton();
@@ -80,10 +90,14 @@ namespace cru
             MouseButton button_;
         };
 
-        class DrawEventArgs : public UIEventArgs
+        class DrawEventArgs : public UiEventArgs
         {
         public:
             DrawEventArgs(Object* sender, Object* original_sender, ID2D1DeviceContext* device_context);
+            DrawEventArgs(const DrawEventArgs& other) = default;
+            DrawEventArgs(DrawEventArgs&& other) = default;
+            DrawEventArgs& operator=(const DrawEventArgs& other) = default;
+            DrawEventArgs& operator=(DrawEventArgs&& other) = default;
             ~DrawEventArgs();
 
             ID2D1DeviceContext* GetDeviceContext();
@@ -92,10 +106,14 @@ namespace cru
             ID2D1DeviceContext * device_context_;
         };
 
-        class PositionChangedEventArgs : public UIEventArgs
+        class PositionChangedEventArgs : public UiEventArgs
         {
         public:
             PositionChangedEventArgs(Object* sender, Object* original_sender, const Point& old_position, const Point& new_position);
+            PositionChangedEventArgs(const PositionChangedEventArgs& other) = default;
+            PositionChangedEventArgs(PositionChangedEventArgs&& other) = default;
+            PositionChangedEventArgs& operator=(const PositionChangedEventArgs& other) = default;
+            PositionChangedEventArgs& operator=(PositionChangedEventArgs&& other) = default;
             ~PositionChangedEventArgs() override;
 
             Point GetOldPosition();
@@ -106,10 +124,14 @@ namespace cru
             Point new_position_;
         };
 
-        class SizeChangedEventArgs : public UIEventArgs
+        class SizeChangedEventArgs : public UiEventArgs
         {
         public:
             SizeChangedEventArgs(Object* sender, Object* original_sender, const Size& old_size, const Size& new_size);
+            SizeChangedEventArgs(const SizeChangedEventArgs& other) = default;
+            SizeChangedEventArgs(SizeChangedEventArgs&& other) = default;
+            SizeChangedEventArgs& operator=(const SizeChangedEventArgs& other) = default;
+            SizeChangedEventArgs& operator=(SizeChangedEventArgs&& other) = default;
             ~SizeChangedEventArgs() override;
 
             Size GetOldSize();
@@ -120,7 +142,7 @@ namespace cru
             Size new_size_;
         };
 
-        using UIEvent = Event<UIEventArgs>;
+        using UiEvent = Event<UiEventArgs>;
         using MouseEvent = Event<MouseEventArgs>;
         using MouseButtonEvent = Event<MouseButtonEventArgs>;
         using DrawEvent = Event<DrawEventArgs>;
@@ -131,7 +153,7 @@ namespace cru
         struct ControlPositionCache
         {
             //The lefttop relative to the ancestor.
-            Point lefttop_position_absolute_;
+            Point lefttop_position_absolute;
         };
 
         class Control abstract : public Object
@@ -236,8 +258,8 @@ namespace cru
             //Raised when a mouse button is released in the control.
             MouseButtonEvent mouse_up_event;
 
-            UIEvent get_focus_event;
-            UIEvent lose_focus_event;
+            UiEvent get_focus_event;
+            UiEvent lose_focus_event;
 
             DrawEvent draw_event;
 
@@ -288,11 +310,11 @@ namespace cru
 
 
             //*************** region: focus event ***************
-            virtual void OnGetFocus(UIEventArgs& args);
-            virtual void OnLoseFocus(UIEventArgs& args);
+            virtual void OnGetFocus(UiEventArgs& args);
+            virtual void OnLoseFocus(UiEventArgs& args);
 
-            virtual void OnGetFocusCore(UIEventArgs& args);
-            virtual void OnLoseFocusCore(UIEventArgs& args);
+            virtual void OnGetFocusCore(UiEventArgs& args);
+            virtual void OnLoseFocusCore(UiEventArgs& args);
 
         private:
             Window * window_ = nullptr;

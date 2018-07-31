@@ -5,27 +5,21 @@
 namespace cru {
     namespace ui {
         MouseEventArgs::MouseEventArgs(Object * sender, Object * origin_sender)
-            : UIEventArgs(sender, origin_sender), point_(nullptr)
+            : UiEventArgs(sender, origin_sender), has_point_(false)
         {
 
         }
 
         MouseEventArgs::MouseEventArgs(Object* sender, Object* origin_sender, const Point& point)
-            : UIEventArgs(sender, origin_sender), point_(new Point(point))
+            : UiEventArgs(sender, origin_sender), has_point_(true), point_(point)
         {
 
-        }
-
-        MouseEventArgs::~MouseEventArgs()
-        {
-            if (point_)
-                delete point_;
         }
 
         Point MouseEventArgs::GetPoint(Control* control)
         {
-            if (point_)
-                return control->AbsoluteToLocal(*point_);
+            if (has_point_)
+                return control->AbsoluteToLocal(point_);
             else
                 return Point();
         }
@@ -48,7 +42,7 @@ namespace cru {
         }
 
         DrawEventArgs::DrawEventArgs(Object * sender, Object * original_sender, ID2D1DeviceContext * device_context)
-            : UIEventArgs(sender, original_sender), device_context_(device_context)
+            : UiEventArgs(sender, original_sender), device_context_(device_context)
         {
 
         }
@@ -64,7 +58,7 @@ namespace cru {
         }
 
         PositionChangedEventArgs::PositionChangedEventArgs(Object * sender, Object * original_sender, const Point & old_position, const Point & new_position)
-            : UIEventArgs(sender, original_sender), old_position_(old_position), new_position_(new_position)
+            : UiEventArgs(sender, original_sender), old_position_(old_position), new_position_(new_position)
         {
 
         }
@@ -85,7 +79,7 @@ namespace cru {
         }
 
         SizeChangedEventArgs::SizeChangedEventArgs(Object * sender, Object * original_sender, const Size & old_size, const Size & new_size)
-            : UIEventArgs(sender, original_sender), old_size_(old_size), new_size_(new_size)
+            : UiEventArgs(sender, original_sender), old_size_(old_size), new_size_(new_size)
         {
 
         }
@@ -267,19 +261,19 @@ namespace cru {
 
         Point Control::GetPositionAbsolute()
         {
-            return position_cache_.lefttop_position_absolute_;
+            return position_cache_.lefttop_position_absolute;
         }
 
         Point Control::LocalToAbsolute(const Point& point)
         {
-            return Point(point.x + position_cache_.lefttop_position_absolute_.x,
-                point.y + position_cache_.lefttop_position_absolute_.y);
+            return Point(point.x + position_cache_.lefttop_position_absolute.x,
+                point.y + position_cache_.lefttop_position_absolute.y);
         }
 
         Point Control::AbsoluteToLocal(const Point & point)
         {
-            return Point(point.x - position_cache_.lefttop_position_absolute_.x,
-                point.y - position_cache_.lefttop_position_absolute_.y);
+            return Point(point.x - position_cache_.lefttop_position_absolute.x,
+                point.y - position_cache_.lefttop_position_absolute.y);
         }
 
         bool Control::IsPointInside(const Point & point)
@@ -435,21 +429,21 @@ namespace cru {
             mouse_up_event.Raise(args);
         }
 
-        void Control::OnGetFocus(UIEventArgs & args)
+        void Control::OnGetFocus(UiEventArgs & args)
         {
         }
 
-        void Control::OnLoseFocus(UIEventArgs & args)
+        void Control::OnLoseFocus(UiEventArgs & args)
         {
         }
 
-        void Control::OnGetFocusCore(UIEventArgs & args)
+        void Control::OnGetFocusCore(UiEventArgs & args)
         {
             OnGetFocus(args);
             get_focus_event.Raise(args);
         }
 
-        void Control::OnLoseFocusCore(UIEventArgs & args)
+        void Control::OnLoseFocusCore(UiEventArgs & args)
         {
             OnLoseFocus(args);
             lose_focus_event.Raise(args);

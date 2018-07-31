@@ -6,7 +6,7 @@ namespace cru {
     namespace ui {
         struct Point {
             Point() = default;
-            Point(float x, float y) : x(x), y(y) { }
+            Point(const float x, const float y) : x(x), y(y) { }
 
             float x = 0.0f;
             float y = 0.0f;
@@ -14,7 +14,7 @@ namespace cru {
 
         struct Size {
             Size() = default;
-            Size(float width, float height) : width(width), height(height) { }
+            Size(const float width, const float height) : width(width), height(height) { }
 
             float width = 0.0f;
             float height = 0.0f;
@@ -22,7 +22,7 @@ namespace cru {
 
         struct Rect {
             Rect() = default;
-            Rect(float left, float top, float width, float height)
+            Rect(const float left, const float top, const float width, const float height)
                 : left(left), top(top), width(width), height(height) { }
             Rect(const Point& lefttop, const Size& size)
                 : left(lefttop.x), top(lefttop.y), width(size.width), height(size.height) { }
@@ -68,15 +68,12 @@ namespace cru {
         struct Thickness
         {
             Thickness() : Thickness(0) { }
-            Thickness(float width)
+            explicit Thickness(const float width)
                 : left(width), top(width), right(width), bottom(width) { }
 
-            Thickness(float left, float top, float right, float bottom)
+            Thickness(const float left, const float top, const float right, const float bottom)
                 : left(left), top(top), right(right), bottom(bottom) { }
 
-            Thickness(const Thickness&) = default;
-            Thickness& operator = (const Thickness&) = default;
-            ~Thickness() = default;
 
             float left;
             float top;
@@ -84,11 +81,15 @@ namespace cru {
             float bottom;
         };
 
-		class UIEventArgs : public BasicEventArgs
+		class UiEventArgs : public BasicEventArgs
 		{
 		public:
-			UIEventArgs(Object* sender, Object* original_sender);
-			~UIEventArgs() override;
+			UiEventArgs(Object* sender, Object* original_sender);
+		    UiEventArgs(const UiEventArgs& other) = default;
+		    UiEventArgs(UiEventArgs&& other) = default;
+		    UiEventArgs& operator=(const UiEventArgs& other) = default;
+		    UiEventArgs& operator=(UiEventArgs&& other) = default;
+			~UiEventArgs() override = default;
 
 			Object* GetOriginalSender();
 
