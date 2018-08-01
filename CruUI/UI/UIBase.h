@@ -5,19 +5,23 @@
 namespace cru {
     namespace ui {
         struct Point {
+            static const Point zero;
+
             Point() = default;
             Point(const float x, const float y) : x(x), y(y) { }
 
-            float x = 0.0f;
-            float y = 0.0f;
+            float x;
+            float y;
         };
 
         struct Size {
+            static const Size zero;
+
             Size() = default;
             Size(const float width, const float height) : width(width), height(height) { }
 
-            float width = 0.0f;
-            float height = 0.0f;
+            float width;
+            float height;
         };
 
         struct Rect {

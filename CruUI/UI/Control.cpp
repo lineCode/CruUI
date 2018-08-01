@@ -5,7 +5,7 @@
 namespace cru {
     namespace ui {
         MouseEventArgs::MouseEventArgs(Object * sender, Object * origin_sender)
-            : UiEventArgs(sender, origin_sender), has_point_(false)
+            : UiEventArgs(sender, origin_sender), has_point_(false), point_()
         {
 
         }
@@ -241,7 +241,7 @@ namespace cru {
                 window->GetLayoutManager()->InvalidateControlPositionCache(this);
                 window->Repaint();
             }
-            //TODO!!!
+            //TODO: Position change notify.
         }
 
         Size Control::GetSize()
@@ -251,7 +251,7 @@ namespace cru {
 
         void Control::SetSize(const Size & size)
         {
-            auto old_size = size_;
+            const auto old_size = size_;
             size_ = size;
             SizeChangedEventArgs args(this, this, old_size, size);
             OnSizeChangedCore(args);
@@ -312,10 +312,34 @@ namespace cru {
         bool Control::HasFocus()
         {
             auto window = GetWindow();
-            if (window = nullptr)
+            if (window == nullptr)
                 return false;
 
             return window->GetFocusControl() == this;
+        }
+
+        Size Control::Measure(const MeasureSize& size)
+        {
+            const auto result = OnMeasure(size);
+            SetDesiredSize(result);
+            return result;
+        }
+
+        void Control::Layout(const Rect& rect)
+        {
+            SetPositionRelative(rect.GetLefttop());
+            SetSize(rect.GetSize());
+            OnLayout(rect);
+        }
+
+        Size Control::GetDesiredSize()
+        {
+            return desired_size_;
+        }
+
+        void Control::SetDesiredSize(const Size& desired_size)
+        {
+            desired_size_ = desired_size;
         }
 
         void Control::OnAddChild(Control* child)
@@ -449,6 +473,63 @@ namespace cru {
             lose_focus_event.Raise(args);
         }
 
+        Size Control::OnMeasure(const MeasureSize& size)
+        {
+            auto this_measure_size = GetLayoutParams()->size; //copy a new one
+
+            // if MatchParent then copy parent to this
+            if (this_measure_size.width.mode == MeasureMode::MatchParent)
+                this_measure_size.width = size.width;
+            if (this_measure_size.height.mode == MeasureMode::MatchParent)
+                this_measure_size.height = size.height;
+
+            auto final_size = Size::zero; // return value
+
+            if (this_measure_size.width.mode == MeasureMode::Exactly)
+            {
+                // if bigger than parent then shrink to fit parent
+                if (this_measure_size.width.length > size.width.length)
+                    this_measure_size.width.length = size.width.length;
+
+                final_size.width = this_measure_size.width.length;
+            }
+            else // mode == WrapContent
+            {
+                this_measure_size.width.length = size.width.length; // available length = parent's available/exact length
+            }
+
+            if (this_measure_size.height.mode == MeasureMode::Exactly)
+            {
+                // if bigger than parent then shrink to fit parent
+                if (this_measure_size.height.length > size.height.length)
+                    this_measure_size.height.length = size.height.length;
+
+                final_size.height = this_measure_size.height.length;
+            }
+            else // mode == WrapContent
+            {
+                this_measure_size.height.length = size.height.length; // available length = parent's available/exact length
+            }
+
+            ForeachChild([this_measure_size, &final_size](Control* control)
+            {
+                const auto size = control->Measure(this_measure_size);
+
+                // if WrapContent size is the biggest of children
+                if (this_measure_size.width.mode == MeasureMode::WrapContent)
+                    final_size.width = std::max(final_size.width, size.width);
+                if (this_measure_size.height.mode == MeasureMode::WrapContent)
+                    final_size.height = std::max(final_size.height, size.height);
+            });
+
+            return final_size;
+        }
+
+        void Control::OnLayout(const Rect& rect)
+        {
+            //TODO!
+        }
+
         std::list<Control*> GetAncestorList(Control* control)
         {
             std::list<Control*> l;
@@ -457,7 +538,7 @@ namespace cru {
                 l.push_front(control);
                 control = control->GetParent();
             }
-            return std::move(l);
+            return l;
         }
 
         Control* FindLowestCommonAncestor(Control * left, Control * right)
@@ -486,8 +567,6 @@ namespace cru {
                 ++left_i;
                 ++right_i;
             }
-
-            return nullptr;
         }
 
         Control * HaveChildParentRelationship(Control * left, Control * right)

@@ -147,16 +147,16 @@ namespace cru {
 			//*************** region: position and size ***************
 
 			//Always return (0, 0) for a window.
-			Point GetPositionRelative() override;
+			Point GetPositionRelative() override final;
 
 			//This method has no effect for a window.
-			void SetPositionRelative(const Point& position) override;
+			void SetPositionRelative(const Point& position) override final;
 
 			//Get the size of client area for a window.
-			Size GetSize() override;
+			Size GetSize() override final;
 
 			//Set the size of client area for a window.
-			void SetSize(const Size& size) override;
+			void SetSize(const Size& size) override final;
 
 
 			//*************** region: features ***************

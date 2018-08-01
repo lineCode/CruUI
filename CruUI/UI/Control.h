@@ -11,16 +11,16 @@ namespace cru
         class Control;
         class Window;
 
+        enum class MeasureMode
+        {
+            Exactly,
+            WrapContent,
+            MatchParent
+        };
+
         struct MeasureLength final
         {
-            enum MeasureMode
-            {
-                Exactly,
-                WrapContent,
-                MatchParent
-            };
-
-            explicit MeasureLength(const double length = 0.0, const MeasureMode mode = Exactly)
+            explicit MeasureLength(const double length = 0.0, const MeasureMode mode = MeasureMode::Exactly)
                 : length(length), mode(mode)
             {
 
@@ -245,8 +245,32 @@ namespace cru
             bool HasFocus();
 
 
+            //*************** region: layout ***************
+
+            Size Measure(const MeasureSize& size);
+
+            void Layout(const Rect& rect);
+
+            Size GetDesiredSize();
+
+            void SetDesiredSize(const Size& desired_size);
+
+            template<typename TLayoutParams = BasicLayoutParams>
+            std::shared_ptr<TLayoutParams> GetLayoutParams()
+            {
+                static_assert(std::is_base_of_v<BasicLayoutParams, TLayoutParams>, "TLayoutParams must be subclass of BasicLayoutParams.");
+                return static_cast<std::shared_ptr<BasicLayoutParams>>(layout_params_);
+            }
+
+            template<typename TLayoutParams = BasicLayoutParams,
+                typename = std::enable_if_t<std::is_base_of_v<BasicLayoutParams, TLayoutParams>>>
+            void SetLayoutParams(std::shared_ptr<TLayoutParams> basic_layout_params)
+            {
+                static_assert(std::is_base_of_v<BasicLayoutParams, TLayoutParams>, "TLayoutParams must be subclass of BasicLayoutParams.");
+                layout_params_ = basic_layout_params;
+            }
+
             //*************** region: events ***************
-        public:
             //Raised when mouse enter the control.
             MouseEvent mouse_enter_event;
             //Raised when mouse is leave the control.
@@ -316,6 +340,10 @@ namespace cru
             virtual void OnGetFocusCore(UiEventArgs& args);
             virtual void OnLoseFocusCore(UiEventArgs& args);
 
+            //*************** region: layout ***************
+            virtual Size OnMeasure(const MeasureSize& size);
+            virtual void OnLayout(const Rect& rect);
+
         private:
             Window * window_ = nullptr;
 
@@ -328,6 +356,9 @@ namespace cru
             ControlPositionCache position_cache_{};
 
             bool is_mouse_inside_ = false;
+
+            std::shared_ptr<BasicLayoutParams> layout_params_;
+            Size desired_size_;
         };
 
         // Find the lowest common ancestor.
