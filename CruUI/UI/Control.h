@@ -1,8 +1,13 @@
 #pragma once
+
+#include "SystemHeaders.h"
 #include "Base.h"
 #include "UIBase.h"
 #include "Event.h"
+
+
 #include <vector>
+#include <optional>
 
 namespace cru
 {
@@ -14,8 +19,8 @@ namespace cru
         enum class MeasureMode
         {
             Exactly,
-            WrapContent,
-            MatchParent
+            Content,
+            Stretch
         };
 
         struct MeasureLength final
@@ -36,6 +41,30 @@ namespace cru
             MeasureLength height;
         };
 
+        struct OptionalSize final
+        {
+            OptionalSize()
+                : width(std::nullopt), height(std::nullopt)
+            {
+                
+            }
+
+            OptionalSize(std::optional<float> width, std::optional<float> height)
+                : width(std::move(width)), height(std::move(height))
+            {
+                
+            }
+
+            OptionalSize(const OptionalSize& other) = default;
+            OptionalSize(OptionalSize&& other) = default;
+            OptionalSize& operator = (const OptionalSize& other) = default;
+            OptionalSize& operator = (OptionalSize&& other) = default;
+            ~OptionalSize() = default;
+
+            std::optional<float> width;
+            std::optional<float> height;
+        };
+
         struct BasicLayoutParams
         {
             BasicLayoutParams() = default;
@@ -46,6 +75,8 @@ namespace cru
             virtual ~BasicLayoutParams() = default;
 
             MeasureSize size;
+            OptionalSize min_size;
+            OptionalSize max_size;
         };
 
         enum class MouseButton
@@ -156,7 +187,7 @@ namespace cru
             Point lefttop_position_absolute;
         };
 
-        class Control abstract : public Object
+        class Control : public Object
         {
             friend class Window;
             friend class WindowLayoutManager;
@@ -247,7 +278,7 @@ namespace cru
 
             //*************** region: layout ***************
 
-            Size Measure(const MeasureSize& size);
+            void Measure(const Size& available_size);
 
             void Layout(const Rect& rect);
 
@@ -341,21 +372,21 @@ namespace cru
             virtual void OnLoseFocusCore(UiEventArgs& args);
 
             //*************** region: layout ***************
-            virtual Size OnMeasure(const MeasureSize& size);
+            virtual Size OnMeasure(const Size& available_size);
             virtual void OnLayout(const Rect& rect);
 
         private:
-            Window * window_ = nullptr;
+            Window * window_;
 
-            Control * parent_ = nullptr;
-            std::vector<Control*> children_{};
+            Control * parent_;
+            std::vector<Control*> children_;
 
             Point position_;
             Size size_;
 
-            ControlPositionCache position_cache_{};
+            ControlPositionCache position_cache_;
 
-            bool is_mouse_inside_ = false;
+            bool is_mouse_inside_;
 
             std::shared_ptr<BasicLayoutParams> layout_params_;
             Size desired_size_;

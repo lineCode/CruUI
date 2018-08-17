@@ -1,6 +1,8 @@
 #pragma once
 
+#include "SystemHeaders.h"
 #include "Base.h"
+
 #include <functional>
 #include <memory>
 #include <map>

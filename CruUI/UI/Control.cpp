@@ -99,7 +99,16 @@ namespace cru {
             return new_size_;
         }
 
-        Control::Control()
+        Control::Control() :
+            window_(nullptr),
+            parent_(nullptr),
+            children_(),
+            position_(Point::zero),
+            size_(Size::zero),
+            position_cache_(),
+            is_mouse_inside_(false),
+            layout_params_(nullptr),
+            desired_size_(Size::zero)
         {
 
         }
@@ -158,7 +167,7 @@ namespace cru {
         {
             AddChildCheck(control);
 
-            if (position < 0 || position > this->children_.size())
+            if (position < 0 || static_cast<decltype(this->children_.size())>(position) > this->children_.size())
                 throw std::invalid_argument("The position is out of range.");
 
             this->children_.insert(this->children_.cbegin() + position, control);
@@ -183,7 +192,7 @@ namespace cru {
 
         void Control::RemoveChild(int position)
         {
-            if (position < 0 || position >= children_.size())
+            if (position < 0 || static_cast<decltype(this->children_.size())>(position) >= this->children_.size())
                 throw std::invalid_argument("The position is out of range.");
 
             const auto p = children_.cbegin() + position;
@@ -203,7 +212,7 @@ namespace cru {
 
             // otherwise find the ancestor
             auto ancestor = this;
-            while (auto parent = ancestor->GetParent())
+            while (const auto parent = ancestor->GetParent())
                 ancestor = parent;
             return ancestor;
         }
@@ -213,19 +222,19 @@ namespace cru {
             return window_;
         }
 
-        void TraverseDescendants_(Control* control,
+        void TraverseDescendantsInternal(Control* control,
             const std::function<void(Control*)>& predicate)
         {
             predicate(control);
-            control->ForeachChild([control, predicate](Control* c) {
-                TraverseDescendants_(c, predicate);
+            control->ForeachChild([predicate](Control* c) {
+                TraverseDescendantsInternal(c, predicate);
             });
         }
 
         void Control::TraverseDescendants(
             const std::function<void(Control*)>& predicate)
         {
-            TraverseDescendants_(this, predicate);
+            TraverseDescendantsInternal(this, predicate);
         }
 
         Point Control::GetPositionRelative()
@@ -318,11 +327,9 @@ namespace cru {
             return window->GetFocusControl() == this;
         }
 
-        Size Control::Measure(const MeasureSize& size)
+        void Control::Measure(const Size& available_size)
         {
-            const auto result = OnMeasure(size);
-            SetDesiredSize(result);
-            return result;
+            SetDesiredSize(OnMeasure(available_size));
         }
 
         void Control::Layout(const Rect& rect)
@@ -473,56 +480,21 @@ namespace cru {
             lose_focus_event.Raise(args);
         }
 
-        Size Control::OnMeasure(const MeasureSize& size)
+        inline float MaxSizeHelperFunc(const std::optional<float> max_length, float available_length)
         {
-            auto this_measure_size = GetLayoutParams()->size; //copy a new one
+            return max_length.has_value() ? std::min(max_length.value(), available_length) : available_length;
+        }
 
-            // if MatchParent then copy parent to this
-            if (this_measure_size.width.mode == MeasureMode::MatchParent)
-                this_measure_size.width = size.width;
-            if (this_measure_size.height.mode == MeasureMode::MatchParent)
-                this_measure_size.height = size.height;
+        Size Control::OnMeasure(const Size& available_size)
+        {
+            auto layout_params = GetLayoutParams();
 
-            auto final_size = Size::zero; // return value
+            // real_max_size is the greater one between max_size in layout_params and available_size.
+            Size real_max_size;
+            real_max_size.width = MaxSizeHelperFunc(layout_params->max_size.width, available_size.width);
+            real_max_size.height = MaxSizeHelperFunc(layout_params->max_size.height, available_size.height);
 
-            if (this_measure_size.width.mode == MeasureMode::Exactly)
-            {
-                // if bigger than parent then shrink to fit parent
-                if (this_measure_size.width.length > size.width.length)
-                    this_measure_size.width.length = size.width.length;
-
-                final_size.width = this_measure_size.width.length;
-            }
-            else // mode == WrapContent
-            {
-                this_measure_size.width.length = size.width.length; // available length = parent's available/exact length
-            }
-
-            if (this_measure_size.height.mode == MeasureMode::Exactly)
-            {
-                // if bigger than parent then shrink to fit parent
-                if (this_measure_size.height.length > size.height.length)
-                    this_measure_size.height.length = size.height.length;
-
-                final_size.height = this_measure_size.height.length;
-            }
-            else // mode == WrapContent
-            {
-                this_measure_size.height.length = size.height.length; // available length = parent's available/exact length
-            }
-
-            ForeachChild([this_measure_size, &final_size](Control* control)
-            {
-                const auto size = control->Measure(this_measure_size);
-
-                // if WrapContent size is the biggest of children
-                if (this_measure_size.width.mode == MeasureMode::WrapContent)
-                    final_size.width = std::max(final_size.width, size.width);
-                if (this_measure_size.height.mode == MeasureMode::WrapContent)
-                    final_size.height = std::max(final_size.height, size.height);
-            });
-
-            return final_size;
+            //TODO!
         }
 
         void Control::OnLayout(const Rect& rect)

@@ -1,21 +1,24 @@
 # Layout Specifications
 
+## overview
 This document is the specification of layout system.
+
+The layout system imitates WPF and Android layout system.
 
 ## rules
 
 ### about `width` and `height` in `LayoutParams`
-There is three mode in measure: `MatchParent`, `WrapContent`, `Exactly`.
+There is three mode in measure: `Content`, `Exactly`, `Stretch`.
 
-- `Exactly` mode is with a specific length, which means it should be of exact size.
+- `Exactly` means the control should be of an exact size.
 
-- `WrapContent` means the control has the size that contains the children exactly.
+- `Content` means the control has the size that contains the children.
 
-- `MatchParent` means the control has the same measure pattern of parent. If parent is `WrapContent`, then it wraps content, which means both itself and parent will wrap content and if parent has only one control, then they are of the same size. If parent is `Exactly`, then it will be also `Exactly` with the same length. If parent is `MatchParent`, then it will be the same of parent's parent.
+- `Stretch` means the control stretch to the max size that it can fill. If parent is `Content`, it occupies all available room parent provides, which means its parent will stretch as well.
 
-### about `max_width`, `max_height`, `min_width`, `min_height`
+### about `max_size`, `min_size`
 
-`max*` specify the max length of a dimension and `min*` specify the min length of a dimension. They are of higher priority of `width` and `height`. Calculated size should be adjusted according to the four properties.
+`max_size` specifies the max size and `min_size` specifies the min size. They are of higher priority of `width` and `height`. Calculated size should be adjusted according to the four properties.
 
 ## structure
 
@@ -23,17 +26,17 @@ There is three mode in measure: `MatchParent`, `WrapContent`, `Exactly`.
 ``` c++
 enum class MeasureMode
 {
-    WrapContent,
-    MatchParent,
+    Content,
+    Stretch,
     Exactly
 };
 ```
 
 ### struct `MeasureLength`
 ``` c++
-struct MeaureLength // with optional constructor
+struct MeaureLength
 {
-    double length;
+    float length;
     MeasureMode mode;
 };
 ```
@@ -46,20 +49,47 @@ struct MeasureSize
     MeasureLength height;
 };
 ```
+
+### struct `OptionalSize`
+``` c++
+struct OptionalSize
+{
+    optional<float> width;
+    optional<float> height;
+}
+```
+
+### struct `BasicLayoutParams`
+``` c++
+struct BasicLayoutParams
+{
+    MeasureSize size;
+    OptionalSize max_size;
+    OptionalSize min_size;
+}
+```
+
 ### interface `ILayoutable`
 ``` c++
 struct ILayoutable : virtual Interface
 {
-    // Get lefttop relative to parent.
-    virtual Point GetPosition() = 0;
+    virtual void Measure(const Size&) = 0;
+    virtual void Layout(const Rect&) = 0;
 
-    // Set lefttop relative to parent.
-    virtual void SetPosition(const Point& point) = 0;
+    virtual BasicLayoutParams* GetLayoutParams() = 0;
+    virtual void SetLayoutParams(BasicLayoutParams* params) = 0;
 
-    // Get size.
-    virtual Size GetSize() = 0;
+    virtual Size GetDesiredSize() = 0;
+    virtual void SetDesiredSize(const Size& size) = 0;
 
-    // Set size.
-    virtual void SetSize(const Size& size) = 0;
+/*
+protected:
+    virtual Size OnMeasure(const Size& size);
+    virtual void OnLayout(const Rect& rect);
+*/
 };
 ```
+
+## process
+
+

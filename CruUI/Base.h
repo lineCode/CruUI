@@ -1,30 +1,8 @@
 #pragma once
 
-//include system headers
-
-#define NOMINMAX
-#include <Windows.h>
-#include <windowsx.h>
-
-#pragma comment(lib, "D3D11.lib")
-#include <d3d11.h>
-
-#pragma comment(lib, "D2d1.lib")
-#include <d2d1_1.h>
-
-#pragma comment(lib, "DWrite.lib")
-#include <dwrite.h>
-
-#include <dxgi1_2.h>
-#include <wrl/client.h>
-
-
 //include std headers
 #include <string>
 #include <stdexcept>
-
-#include <type_traits>
-
 
 //handy macros for copy control
 #define CRU_NO_COPY(className) \
@@ -51,12 +29,12 @@ namespace cru
 		Object& operator = (const Object&) = default;
 		Object(Object&&) = default;
 		Object& operator = (Object&&) = default;
-		virtual ~Object();
+		virtual ~Object() = default;
 	};
 
 	struct Interface
 	{
-		virtual ~Interface();
+		virtual ~Interface() = default;
 	};
 
 	enum class FlowControl
@@ -64,7 +42,4 @@ namespace cru
 		Continue,
 		Break
 	};
-
-	template <class T, class U>
-	constexpr bool decays_to = std::is_convertible_v<std::decay_t<T>*, U*>;
 }

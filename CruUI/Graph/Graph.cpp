@@ -140,7 +140,7 @@ namespace cru {
             creation_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-            D3D_FEATURE_LEVEL feature_levels[] =
+            const D3D_FEATURE_LEVEL feature_levels[] =
             {
                 D3D_FEATURE_LEVEL_11_1,
                 D3D_FEATURE_LEVEL_11_0,

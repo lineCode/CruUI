@@ -1,6 +1,8 @@
 #pragma once
 
+#include "SystemHeaders.h"
 #include "Base.h"
+
 #include <optional>
 
 namespace cru {

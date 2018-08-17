@@ -87,7 +87,7 @@ namespace cru
 		}
 
 		Window* WindowManager::FromHandle(HWND hwnd) {
-			auto find_result = window_map_.find(hwnd);
+		    const auto find_result = window_map_.find(hwnd);
 			if (find_result == window_map_.end())
 				return nullptr;
 			else
@@ -135,7 +135,7 @@ namespace cru
 
 		void WindowLayoutManager::RefreshControlPositionCache(Control * control)
 		{
-			Point point;
+			Point point = Point::zero;
 			auto parent = control;
 			while ((parent = parent->GetParent())) {
 				const auto p = parent->GetPositionRelative();

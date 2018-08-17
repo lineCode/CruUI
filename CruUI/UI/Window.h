@@ -1,8 +1,8 @@
 #pragma once
 
+#include "SystemHeaders.h"
 #include "Control.h"
 
-#include <utility>
 #include <set>
 #include <map>
 #include <list>
@@ -19,7 +19,7 @@ namespace cru {
 		{
 		public:
 			WindowClass(const std::wstring& name, WNDPROC window_proc, HINSTANCE hinstance);
-			~WindowClass() override;
+		    ~WindowClass() override;
 
             CRU_NO_COPY_MOVE(WindowClass)
 
