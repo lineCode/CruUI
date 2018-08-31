@@ -1,27 +1,27 @@
-#include "Timer.h"
+#include "timer.h"
 
 namespace cru
 {
-	TimerManager* TimerManager::instance = nullptr;
+	TimerManager* TimerManager::instance_ = nullptr;
 
 	TimerManager* TimerManager::GetInstance()
 	{
-		return instance;
+		return instance_;
 	}
 
 	TimerManager::TimerManager()
 	{
-		instance = this;
+		instance_ = this;
 	}
 
 	TimerManager::~TimerManager()
 	{
-		instance = nullptr;
+		instance_ = nullptr;
 	}
 
-	UINT_PTR TimerManager::CreateTimer(UINT milliseconds, bool loop, const TimerAction & action)
+	UINT_PTR TimerManager::CreateTimer(const UINT microseconds, const bool loop, const TimerAction & action)
 	{
-		auto id = ::SetTimer(nullptr, 0, milliseconds, nullptr);
+		auto id = ::SetTimer(nullptr, 0, microseconds, nullptr);
 		if (loop)
 			map_[id] = action;
 		else
@@ -33,9 +33,9 @@ namespace cru
 		return id;
 	}
 
-	void TimerManager::KillTimer(UINT_PTR id)
+	void TimerManager::KillTimer(const UINT_PTR id)
 	{
-		auto find_result = map_.find(id);
+		const auto find_result = map_.find(id);
 		if (find_result != map_.cend())
 		{
 			::KillTimer(nullptr, id);
@@ -43,7 +43,7 @@ namespace cru
 		}
 	}
 
-	std::optional<TimerAction> TimerManager::GetAction(UINT_PTR id)
+	std::optional<TimerAction> TimerManager::GetAction(const UINT_PTR id)
 	{
 		auto find_result = map_.find(id);
 		if (find_result == map_.cend())
@@ -51,11 +51,15 @@ namespace cru
 		return find_result->second;
 	}
 
-	class TimerTask_Impl : public ITimerTask
+	class TimerTaskImpl : public ITimerTask
 	{
 	public:
-		TimerTask_Impl(UINT_PTR id);
-		~TimerTask_Impl() override;
+		explicit TimerTaskImpl(UINT_PTR id);
+	    TimerTaskImpl(const TimerTaskImpl& other) = delete;
+	    TimerTaskImpl(TimerTaskImpl&& other) = delete;
+	    TimerTaskImpl& operator=(const TimerTaskImpl& other) = delete;
+	    TimerTaskImpl& operator=(TimerTaskImpl&& other) = delete;
+		~TimerTaskImpl() override = default;
 
 		void Cancel() override;
 
@@ -63,36 +67,31 @@ namespace cru
 		UINT_PTR id_;
 	};
 
-	TimerTask_Impl::TimerTask_Impl(UINT_PTR id)
+	TimerTaskImpl::TimerTaskImpl(const UINT_PTR id)
 		: id_(id)
 	{
 
 	}
 
-	TimerTask_Impl::~TimerTask_Impl()
-	{
-
-	}
-
-	void TimerTask_Impl::Cancel()
+    void TimerTaskImpl::Cancel()
 	{
 		TimerManager::GetInstance()->KillTimer(id_);
 	}
 
-	inline UINT SecondToMilliSecond(double seconds)
+	inline UINT SecondToMicroSecond(const double seconds)
 	{
 		return static_cast<UINT>(seconds * 1000);
 	}
 
-	std::shared_ptr<ITimerTask> SetTimeout(double seconds, const TimerAction & action)
+	std::shared_ptr<ITimerTask> SetTimeout(const double seconds, const TimerAction & action)
 	{
-		auto id = TimerManager::GetInstance()->CreateTimer(SecondToMilliSecond(seconds), false, action);
-		return std::make_shared<TimerTask_Impl>(id);
+		auto id = TimerManager::GetInstance()->CreateTimer(SecondToMicroSecond(seconds), false, action);
+		return std::make_shared<TimerTaskImpl>(id);
 	}
 
-	std::shared_ptr<ITimerTask> SetInterval(double seconds, const TimerAction & action)
+	std::shared_ptr<ITimerTask> SetInterval(const double seconds, const TimerAction & action)
 	{
-		auto id = TimerManager::GetInstance()->CreateTimer(SecondToMilliSecond(seconds), true, action);
-		return std::make_shared<TimerTask_Impl>(id);
+		auto id = TimerManager::GetInstance()->CreateTimer(SecondToMicroSecond(seconds), true, action);
+		return std::make_shared<TimerTaskImpl>(id);
 	}
 }

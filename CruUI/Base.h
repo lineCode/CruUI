@@ -1,25 +1,12 @@
 #pragma once
 
-//include std headers
-#include <string>
-#include <stdexcept>
+#include "global_macros.h"
 
-//handy macros for copy control
-#define CRU_NO_COPY(className) \
-className(const className&) = delete; \
-className& operator = (const className&) = delete;
+#include <folly/String.h>
 
-#define CRU_NO_MOVE(className) \
-className(className&&) = delete; \
-className& operator = (className&&) = delete;
-
-#define CRU_NO_COPY_MOVE(className) CRU_NO_COPY(className) CRU_NO_MOVE(className)
-
-
-//basic classes
 namespace cru
 {
-	using String = std::wstring;
+	using String = folly::basic_fbstring<wchar_t>;
 
 	class Object
 	{

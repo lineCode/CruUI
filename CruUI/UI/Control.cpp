@@ -1,103 +1,12 @@
-#include "Control.h"
-#include "Window.h"
+#include "control.h"
+
 #include <algorithm>
+
+#include "window.h"
 
 namespace cru {
     namespace ui {
-        MouseEventArgs::MouseEventArgs(Object * sender, Object * origin_sender)
-            : UiEventArgs(sender, origin_sender), has_point_(false), point_()
-        {
-
-        }
-
-        MouseEventArgs::MouseEventArgs(Object* sender, Object* origin_sender, const Point& point)
-            : UiEventArgs(sender, origin_sender), has_point_(true), point_(point)
-        {
-
-        }
-
-        Point MouseEventArgs::GetPoint(Control* control)
-        {
-            if (has_point_)
-                return control->AbsoluteToLocal(point_);
-            else
-                return Point();
-        }
-
-        MouseButtonEventArgs::MouseButtonEventArgs(
-            Object * sender, Object* origin_sender, const Point & point, MouseButton button)
-            : MouseEventArgs(sender, origin_sender, point), button_(button)
-        {
-
-        }
-
-        MouseButtonEventArgs::~MouseButtonEventArgs()
-        {
-
-        }
-
-        MouseButton MouseButtonEventArgs::GetMouseButton()
-        {
-            return button_;
-        }
-
-        DrawEventArgs::DrawEventArgs(Object * sender, Object * original_sender, ID2D1DeviceContext * device_context)
-            : UiEventArgs(sender, original_sender), device_context_(device_context)
-        {
-
-        }
-
-        DrawEventArgs::~DrawEventArgs()
-        {
-
-        }
-
-        ID2D1DeviceContext * DrawEventArgs::GetDeviceContext()
-        {
-            return device_context_;
-        }
-
-        PositionChangedEventArgs::PositionChangedEventArgs(Object * sender, Object * original_sender, const Point & old_position, const Point & new_position)
-            : UiEventArgs(sender, original_sender), old_position_(old_position), new_position_(new_position)
-        {
-
-        }
-
-        PositionChangedEventArgs::~PositionChangedEventArgs()
-        {
-
-        }
-
-        Point PositionChangedEventArgs::GetOldPosition()
-        {
-            return old_position_;
-        }
-
-        Point PositionChangedEventArgs::GetNewPosition()
-        {
-            return new_position_;
-        }
-
-        SizeChangedEventArgs::SizeChangedEventArgs(Object * sender, Object * original_sender, const Size & old_size, const Size & new_size)
-            : UiEventArgs(sender, original_sender), old_size_(old_size), new_size_(new_size)
-        {
-
-        }
-
-        SizeChangedEventArgs::~SizeChangedEventArgs()
-        {
-
-        }
-
-        Size SizeChangedEventArgs::GetOldSize()
-        {
-            return old_size_;
-        }
-
-        Size SizeChangedEventArgs::GetNewSize()
-        {
-            return new_size_;
-        }
+        using namespace events;
 
         Control::Control() :
             window_(nullptr),
@@ -334,7 +243,7 @@ namespace cru {
 
         void Control::Layout(const Rect& rect)
         {
-            SetPositionRelative(rect.GetLefttop());
+            SetPositionRelative(rect.GetLeftTop());
             SetSize(rect.GetSize());
             OnLayout(rect);
         }
@@ -357,7 +266,7 @@ namespace cru {
                     control->OnAttachToWindow(window);
                 });
                 window->RefreshControlList();
-                
+
             }
         }
 
@@ -487,14 +396,17 @@ namespace cru {
 
         Size Control::OnMeasure(const Size& available_size)
         {
-            auto layout_params = GetLayoutParams();
+            const auto layout_params = GetLayoutParams();
+
 
             // real_max_size is the greater one between max_size in layout_params and available_size.
             Size real_max_size;
             real_max_size.width = MaxSizeHelperFunc(layout_params->max_size.width, available_size.width);
             real_max_size.height = MaxSizeHelperFunc(layout_params->max_size.height, available_size.height);
 
+
             //TODO!
+            return Size();
         }
 
         void Control::OnLayout(const Rect& rect)
@@ -541,7 +453,7 @@ namespace cru {
             }
         }
 
-        Control * HaveChildParentRelationship(Control * left, Control * right)
+        Control * IsAncestorOrDescendant(Control * left, Control * right)
         {
             //Search up along the trunk from "left". Return if find "right".
             auto control = left;
@@ -561,5 +473,5 @@ namespace cru {
             }
             return nullptr;
         }
-}
+    }
 }

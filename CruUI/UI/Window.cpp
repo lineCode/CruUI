@@ -61,13 +61,6 @@ namespace cru
 				);
 		}
 
-		WindowManager::~WindowManager() {
-		}
-
-		WindowClass * WindowManager::GetGeneralWindowClass() {
-			return general_window_class_.get();
-		}
-
 		void WindowManager::RegisterWindow(HWND hwnd, Window * window) {
 			const auto find_result = window_map_.find(hwnd);
 			if (find_result != window_map_.end())
@@ -110,7 +103,7 @@ namespace cru
 			// find descendant then erase it; find ancestor then just return.
 			for (auto i = cache_invalid_controls_.cbegin(); i != cache_invalid_controls_.cend(); ++i)
 			{
-				if (HaveChildParentRelationship(*i, control) == control)
+				if (IsAncestorOrDescendant(*i, control) == control)
 					cache_invalid_controls_.erase(i);
 				else
 					return; // find a ancestor of "control", just return
@@ -452,7 +445,7 @@ namespace cru
 			//Clear the background.
 			device_context->Clear(D2D1::ColorF(D2D1::ColorF::White));
 
-			Draw(device_context);
+			Draw(device_context.Get());
 
 			ThrowIfFailed(
 				device_context->EndDraw(), "Failed to draw window."

@@ -1,30 +1,20 @@
-#include "Exception.h"
+#include "exception.h"
 
 #include <sstream>
 #include <iomanip>
 
 namespace cru
 {
-	HResultError::HResultError(HRESULT h_result)
-		: runtime_error(MakeMessage(h_result, std::nullopt))
+	HResultError::HResultError(const HRESULT h_result)
+		: runtime_error(MakeMessage(h_result, std::nullopt)), h_result_(h_result)
 	{
 
 	}
 
-	HResultError::HResultError(HRESULT h_result, const std::string& message)
-		: runtime_error(MakeMessage(h_result, std::make_optional(message)))
+	HResultError::HResultError(const HRESULT h_result, const std::string& message)
+		: runtime_error(MakeMessage(h_result, std::make_optional(message))), h_result_(h_result)
 	{
 
-	}
-
-	HResultError::~HResultError()
-	{
-
-	}
-
-	HRESULT HResultError::GetHResult() const
-	{
-		return h_result_;
 	}
 
 	std::string HResultError::MakeMessage(HRESULT h_result, std::optional<std::string> message)

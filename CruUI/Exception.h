@@ -1,33 +1,41 @@
 #pragma once
 
-#include "SystemHeaders.h"
-#include "Base.h"
-
+#include "system_headers.h"
 #include <optional>
+
+#include "base.h"
+
 
 namespace cru {
 	class HResultError : public std::runtime_error
 	{
 	public:
-		HResultError(HRESULT h_result);
+		explicit HResultError(HRESULT h_result);
 		HResultError(HRESULT h_result, const std::string& message);
-		~HResultError() override;
+	    HResultError(const HResultError& other) = default;
+	    HResultError(HResultError&& other) = default;
+	    HResultError& operator=(const HResultError& other) = default;
+	    HResultError& operator=(HResultError&& other) = default;
+		~HResultError() override = default;
 
-		HRESULT GetHResult() const;
+		HRESULT GetHResult() const
+		{
+            return h_result_;
+		}
 
 	private:
-		std::string MakeMessage(HRESULT h_result, std::optional<std::string> message);
+	    static std::string MakeMessage(HRESULT h_result, std::optional<std::string> message);
 
 	private:
 		HRESULT h_result_;
 	};
 
-	inline void ThrowIfFailed(HRESULT h_result) {
+	inline void ThrowIfFailed(const HRESULT h_result) {
 		if (FAILED(h_result))
 			throw HResultError(h_result);
 	}
 
-	inline void ThrowIfFailed(HRESULT h_result, const std::string& message) {
+	inline void ThrowIfFailed(const HRESULT h_result, const std::string& message) {
 		if (FAILED(h_result))
 			throw HResultError(h_result, message);
 	}

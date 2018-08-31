@@ -1,104 +1,96 @@
-#include "Application.h"
-#include "UI/Window.h"
-#include "Graph/Graph.h"
-#include "Timer.h"
+#include "application.h"
+
+#include "timer.h"
+#include "ui/window.h"
+#include "graph/graph.h"
 
 namespace cru {
-	constexpr int invoke_later_message_id = WM_USER + 2000;
+    constexpr int invoke_later_message_id = WM_USER + 2000;
 
-	Application* Application::theInstance = nullptr;
+    Application* Application::instance_ = nullptr;
 
-	Application * Application::GetInstance() {
-		return theInstance;
-	}
+    Application * Application::GetInstance() {
+        return instance_;
+    }
 
-	Application::Application(HINSTANCE h_instance)
-		: h_instance_(h_instance) {
+    Application::Application(HINSTANCE h_instance)
+        : h_instance_(h_instance) {
 
-		if (theInstance)
-			throw std::runtime_error("A application instance already exists.");
+        if (instance_)
+            throw std::runtime_error("A application instance already exists.");
 
-		theInstance = this;
+        instance_ = this;
 
-		window_manager_ = std::make_unique<ui::WindowManager>();
-		graph_manager_ = std::make_unique<graph::GraphManager>();
-		timer_manager_ = std::make_unique<TimerManager>();
-	}
+        window_manager_ = std::make_unique<ui::WindowManager>();
+        graph_manager_ = std::make_unique<graph::GraphManager>();
+        timer_manager_ = std::make_unique<TimerManager>();
+    }
 
-	Application::~Application() {
+    Application::~Application()
+    {
+        instance_ = nullptr;
+    }
 
-	}
+    int Application::Run()
+    {
+        MSG msg;
 
-	int Application::Run()
-	{
-		MSG msg;
+        while (GetMessage(&msg, nullptr, 0, 0))
+        {
+            if (!HandleThreadMessage(msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
 
-		while (GetMessage(&msg, nullptr, 0, 0))
-		{
-			bool handled = false;
+            }
+        }
 
-			if (msg.hwnd == nullptr)
-				switch (msg.message)
-				{
-				case invoke_later_message_id:
-				{
-					auto p_action = reinterpret_cast<InvokeLaterAction*>(msg.wParam);
-					(*p_action)();
-					delete p_action;
-					handled = true;
-					break;
-				}
-				case WM_TIMER:
-				{
-					auto action = timer_manager_->GetAction(static_cast<UINT_PTR>(msg.wParam));
-					if (action.has_value())
-					{
-						action.value()();
-						handled = true;
-					}
-				}
-				}
+        return static_cast<int>(msg.wParam);
+    }
 
-			if (!handled)
-			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-			}
-		}
+    void Application::Quit(const int quit_code) {
+        ::PostQuitMessage(quit_code);
+    }
 
-		return static_cast<int>(msg.wParam);
-	}
+    bool Application::HandleThreadMessage(const MSG& message)
+    {
+        if (message.hwnd != nullptr)
+            return false;
 
-	void Application::Quit(int quit_code) {
-		::PostQuitMessage(quit_code);
-	}
+        switch (message.message)
+        {
+        case invoke_later_message_id:
+        {
+            const auto p_action = reinterpret_cast<InvokeLaterAction*>(message.wParam);
+            (*p_action)();
+            delete p_action;
+            return true;
+        }
+        case WM_TIMER:
+        {
+            const auto action = timer_manager_->GetAction(static_cast<UINT_PTR>(message.wParam));
+            if (action.has_value())
+            {
+                action.value()();
+                return true;
+            }
+            break;
+        }
+        default:
+            return false;
+        }
+        return false;
+    }
 
-	ui::WindowManager * Application::GetWindowManager() {
-		return window_manager_.get();
-	}
+    void InvokeLater(const InvokeLaterAction& action) {
+        //copy the action to a safe place
+        auto p_action_copy = new InvokeLaterAction(action);
 
-	graph::GraphManager * Application::GetGraphManager() {
-		return graph_manager_.get();
-	}
-
-	TimerManager * Application::GetTimerManager()
-	{
-		return timer_manager_.get();
-	}
-
-	HINSTANCE Application::GetInstanceHandle() {
-		return h_instance_;
-	}
-
-	void InvokeLater(const InvokeLaterAction& action) {
-		//copy the action to a safe place
-		auto p_action_copy = new InvokeLaterAction(action);
-
-		PostMessage(
-			nullptr,
-			invoke_later_message_id,
-			reinterpret_cast<WPARAM>(p_action_copy),
-			0
-		);
-	}
+        PostMessage(
+            nullptr,
+            invoke_later_message_id,
+            reinterpret_cast<WPARAM>(p_action_copy),
+            0
+        );
+    }
 }

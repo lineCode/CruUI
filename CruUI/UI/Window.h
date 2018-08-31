@@ -1,13 +1,12 @@
 #pragma once
 
-#include "SystemHeaders.h"
-#include "Control.h"
-
+#include "system_headers.h"
 #include <set>
 #include <map>
 #include <list>
 #include <memory>
-#include <optional>
+
+#include "Control.h"
 
 namespace cru {
 	namespace graph {
@@ -18,10 +17,13 @@ namespace cru {
 		class WindowClass : public Object
 		{
 		public:
-			WindowClass(const std::wstring& name, WNDPROC window_proc, HINSTANCE hinstance);
+			WindowClass(const std::wstring& name, WNDPROC window_proc, HINSTANCE h_instance);
+		    WindowClass(const WindowClass& other) = delete;
+		    WindowClass(WindowClass&& other) = delete;
+		    WindowClass& operator=(const WindowClass& other) = delete;
+		    WindowClass& operator=(WindowClass&& other) = delete;
 		    ~WindowClass() override;
 
-            CRU_NO_COPY_MOVE(WindowClass)
 
 			const wchar_t* GetName();
 			ATOM GetAtom();
@@ -35,12 +37,18 @@ namespace cru {
 		{
 		public:
 			WindowManager();
-			~WindowManager() override;
+		    WindowManager(const WindowManager& other) = delete;
+		    WindowManager(WindowManager&& other) = delete;
+		    WindowManager& operator=(const WindowManager& other) = delete;
+		    WindowManager& operator=(WindowManager&& other) = delete;
+			~WindowManager() override = default;
 
-            CRU_NO_COPY_MOVE(WindowManager)
 
 			//Get the general window class for creating ordinary window.
-			WindowClass* GetGeneralWindowClass();
+			WindowClass* GetGeneralWindowClass() const
+			{
+                return general_window_class_.get();
+			}
 
 			//Register a window newly created.
 			//This function adds the hwnd to hwnd-window map.
@@ -65,9 +73,11 @@ namespace cru {
 		{
 		public:
 			WindowLayoutManager();
+		    WindowLayoutManager(const WindowLayoutManager& other) = delete;
+		    WindowLayoutManager(WindowLayoutManager&& other) = delete;
+		    WindowLayoutManager& operator=(const WindowLayoutManager& other) = delete;
+		    WindowLayoutManager& operator=(WindowLayoutManager&& other) = delete;
 			~WindowLayoutManager() override;
-
-            CRU_NO_COPY_MOVE(WindowLayoutManager)
 
 			//Mark position cache of the control and its descendants invalid,
 			//(which is saved as an auto-managed list internal)
@@ -93,8 +103,11 @@ namespace cru {
 			friend class WindowManager;
 		public:
 			Window();
+		    Window(const Window& other) = delete;
+		    Window(Window&& other) = delete;
+		    Window& operator=(const Window& other) = delete;
+		    Window& operator=(Window&& other) = delete;
 			~Window() override;
-			CRU_NO_COPY_MOVE(Window)
 
 		public:
 			//*************** region: managers ***************
@@ -209,17 +222,17 @@ namespace cru {
 			// Dispatch the event.
 			// 
 			// This will invoke the "event_method" of the control and its parent and parent's
-			// parent ... (until "last_reciever" if it's not nullptr) with appropriate args.
+			// parent ... (until "last_receiver" if it's not nullptr) with appropriate args.
 			//
 			// Args is of type "EventArgs". The first init argument is "sender", which is
-			// automatically bound to each recieving control. The second init argument is
+			// automatically bound to each receiving control. The second init argument is
 			// "original_sender", which is unchanged. And "args" will be perfectly forwarded
 			// as the rest arguments.
 			template<typename EventArgs, typename... Args>
-			void DispatchEvent(Control* original_sender, EventMethod<EventArgs> event_method, Control* last_reciever, Args&&... args)
+			void DispatchEvent(Control* original_sender, EventMethod<EventArgs> event_method, Control* last_receiver, Args&&... args)
 			{
 				auto control = original_sender;
-				while (control != nullptr && control != last_reciever)
+				while (control != nullptr && control != last_receiver)
 				{
 					EventArgs event_args(control, original_sender, std::forward<Args>(args)...);
 					(control->*event_method)(event_args);

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "SystemHeaders.h"
-#include "Base.h"
-
+#include "system_headers.h"
 #include <memory>
+
+#include "base.h"
+
 
 namespace cru
 {
@@ -16,18 +17,27 @@ namespace cru
 		{
         public:
             WindowRenderTarget(GraphManager* graph_manager, HWND hwnd);
+            WindowRenderTarget(const WindowRenderTarget& other) = delete;
+            WindowRenderTarget(WindowRenderTarget&& other) = delete;
+            WindowRenderTarget& operator=(const WindowRenderTarget& other) = delete;
+            WindowRenderTarget& operator=(WindowRenderTarget&& other) = delete;
             ~WindowRenderTarget() override;
-            CRU_NO_COPY_MOVE(WindowRenderTarget)
 
         public:
             //Get the graph manager that created the render target.
-            GraphManager* GetGraphManager();
+            GraphManager* GetGraphManager() const
+            {
+                return graph_manager_;
+            }
 
             //Get the d2d device context.
-            ID2D1DeviceContext* GetD2DDeviceContext();
+            inline Microsoft::WRL::ComPtr<ID2D1DeviceContext> GetD2DDeviceContext() const;
 
             //Get the target bitmap which can be set as the ID2D1DeviceContext's target.
-            ID2D1Bitmap1* GetTargetBitmap();
+            Microsoft::WRL::ComPtr<ID2D1Bitmap1> GetTargetBitmap() const
+            {
+                return target_bitmap_;
+            }
 
             //Resize the underlying buffer.
             void ResizeBuffer(int width, int height);
@@ -57,20 +67,35 @@ namespace cru
 		{
         public:
             GraphManager();
+            GraphManager(const GraphManager& other) = delete;
+            GraphManager(GraphManager&& other) = delete;
+            GraphManager& operator=(const GraphManager& other) = delete;
+            GraphManager& operator=(GraphManager&& other) = delete;
             ~GraphManager() override;
-            CRU_NO_COPY_MOVE(GraphManager)
 
         public:
-            ID2D1Factory1* GetD2D1Factory();
-            ID2D1DeviceContext* GetD2D1DeviceContext();
-            ID3D11Device* GetD3D11Device();
-            IDXGIFactory2* GetDXGIFactory();
+            Microsoft::WRL::ComPtr<ID2D1Factory1> GetD2D1Factory() const
+            {
+                return d2d1_factory_;
+            }
+
+            Microsoft::WRL::ComPtr<ID2D1DeviceContext> GetD2D1DeviceContext() const
+            {
+                return d2d1_device_context_;
+            }
+
+            Microsoft::WRL::ComPtr<ID3D11Device> GetD3D11Device() const
+            {
+                return d3d11_device_;
+            }
+
+            Microsoft::WRL::ComPtr<IDXGIFactory2> GetDxgiFactory() const
+            {
+                return dxgi_factory_;
+            }
 
             //Create a window render target with the HWND.
             std::shared_ptr<WindowRenderTarget> CreateWindowRenderTarget(HWND hwnd);
-
-            //Set the window render target as the target the d2d device context.
-            void SetTarget(WindowRenderTarget* target);
 
             //Get the desktop dpi.
             Dpi GetDpi();
@@ -88,9 +113,14 @@ namespace cru
             Microsoft::WRL::ComPtr<IDWriteFactory> dwrite_factory_;
         };
 
-        int DipToPixelX(float dipX);
-        int DipToPixelY(float dipY);
-        float PixelToDipX(int pixelX);
-        float PixelToDipY(int pixelY);
+        int DipToPixelX(float dip_x);
+        int DipToPixelY(float dip_y);
+        float PixelToDipX(int pixel_x);
+        float PixelToDipY(int pixel_y);
+
+        Microsoft::WRL::ComPtr<ID2D1DeviceContext> WindowRenderTarget::GetD2DDeviceContext() const
+        {
+            return graph_manager_->GetD2D1DeviceContext();
+        }
     }
 }

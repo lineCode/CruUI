@@ -1,5 +1,8 @@
 #pragma once
 
+#include "global_macros.h"
+
+
 //include system headers
 
 #define NOMINMAX

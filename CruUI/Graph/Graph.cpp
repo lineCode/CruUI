@@ -1,6 +1,7 @@
-#include "Graph.h"
-#include "Application.h"
-#include "Exception.h"
+#include "graph.h"
+
+#include "application.h"
+#include "exception.h"
 
 namespace cru {
     namespace graph {
@@ -10,9 +11,8 @@ namespace cru {
 		{
             this->graph_manager_ = graph_manager;
 
-            auto d3d11_device = graph_manager->GetD3D11Device();
-            auto dxgi_factory = graph_manager->GetDXGIFactory();
-            auto d2d1_device_context = graph_manager->GetD2D1DeviceContext();
+            const auto d3d11_device = graph_manager->GetD3D11Device();
+            const auto dxgi_factory = graph_manager->GetDxgiFactory();
 
             // Allocate a descriptor.
             DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = { 0 };
@@ -33,7 +33,7 @@ namespace cru {
             // Get the final swap chain for this window from the DXGI factory.
             ThrowIfFailed(
                 dxgi_factory->CreateSwapChainForHwnd(
-                    d3d11_device,
+                    d3d11_device.Get(),
                     hwnd,
                     &swap_chain_desc,
                     nullptr,
@@ -50,21 +50,14 @@ namespace cru {
 
         }
 
-        GraphManager* WindowRenderTarget::GetGraphManager()
+        void WindowRenderTarget::ResizeBuffer(const int width, const int height)
 		{
-            return graph_manager_;
-        }
-
-        void WindowRenderTarget::ResizeBuffer(int width, int height)
-		{
-            auto graph_manager = graph_manager_;
-            auto d3d11_device = graph_manager->GetD3D11Device();
-            auto dxgi_factory = graph_manager->GetDXGIFactory();
-            auto d2d1_device_context = graph_manager->GetD2D1DeviceContext();
+            const auto graph_manager = graph_manager_;
+            const auto d2d1_device_context = graph_manager->GetD2D1DeviceContext();
 
             ComPtr<ID2D1Image> old_target;
             d2d1_device_context->GetTarget(&old_target);
-            bool target_this = old_target == this->target_bitmap_;
+		    const auto target_this = old_target == this->target_bitmap_;
             if (target_this)
                 d2d1_device_context->SetTarget(nullptr);
 
@@ -83,7 +76,7 @@ namespace cru {
 
         void WindowRenderTarget::SetAsTarget()
 		{
-            graph_manager_->SetTarget(this);
+            GetD2DDeviceContext()->SetTarget(target_bitmap_.Get());
         }
 
         void WindowRenderTarget::Present()
@@ -101,7 +94,7 @@ namespace cru {
                 dxgi_swap_chain_->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
             );
 
-            auto dpi = graph_manager_->GetDpi();
+            const auto dpi = graph_manager_->GetDpi();
 
             auto bitmap_properties =
                 D2D1::BitmapProperties1(
@@ -119,17 +112,6 @@ namespace cru {
                     &target_bitmap_
                 )
             );
-
-        }
-
-        ID2D1DeviceContext * WindowRenderTarget::GetD2DDeviceContext()
-		{
-            return graph_manager_->GetD2D1DeviceContext();
-        }
-
-        ID2D1Bitmap1 * WindowRenderTarget::GetTargetBitmap()
-		{
-            return this->target_bitmap_.Get();
         }
 
         GraphManager::GraphManager()
@@ -199,34 +181,9 @@ namespace cru {
 
         }
 
-        ID2D1Factory1* GraphManager::GetD2D1Factory()
-		{
-            return d2d1_factory_.Get();
-        }
-
-        ID2D1DeviceContext* GraphManager::GetD2D1DeviceContext()
-		{
-            return d2d1_device_context_.Get();
-        }
-
-        ID3D11Device * GraphManager::GetD3D11Device()
-		{
-            return d3d11_device_.Get();
-        }
-
-        IDXGIFactory2 * GraphManager::GetDXGIFactory()
-		{
-            return dxgi_factory_.Get();
-        }
-
         std::shared_ptr<WindowRenderTarget> GraphManager::CreateWindowRenderTarget(HWND hwnd)
 		{
             return std::make_shared<WindowRenderTarget>(this, hwnd);
-        }
-
-        void GraphManager::SetTarget(WindowRenderTarget * target)
-		{
-            d2d1_device_context_->SetTarget(target->GetTargetBitmap());
         }
 
         Dpi GraphManager::GetDpi()

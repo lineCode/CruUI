@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Event.h"
-
-namespace cru {
-    namespace ui {
-        struct Point {
+namespace cru
+{
+    namespace ui
+    {
+        struct Point
+        {
             static const Point zero;
 
             Point() = default;
@@ -14,7 +15,8 @@ namespace cru {
             float y;
         };
 
-        struct Size {
+        struct Size
+        {
             static const Size zero;
 
             Size() = default;
@@ -24,38 +26,46 @@ namespace cru {
             float height;
         };
 
-        struct Rect {
+        struct Rect 
+        {
             Rect() = default;
             Rect(const float left, const float top, const float width, const float height)
                 : left(left), top(top), width(width), height(height) { }
             Rect(const Point& lefttop, const Size& size)
                 : left(lefttop.x), top(lefttop.y), width(size.width), height(size.height) { }
 
-            static Rect FromVertices(float left, float top, float right, float bottom) {
+            static Rect FromVertices(const float left, const float top, const float right, const float bottom)
+            {
                 return Rect(left, top, right - left, bottom - top);
             }
 
-            float GetRight() const {
+            float GetRight() const
+            {
                 return left + width;
             }
 
-            float GetBottom() const {
+            float GetBottom() const
+            {
                 return top + height;
             }
 
-            Point GetLefttop() const {
+            Point GetLeftTop() const
+            {
                 return Point(left, top);
             }
 
-			Point GetRightbottom() const {
+			Point GetRightBottom() const
+            {
 				return Point(left + width, top + height);
 			}
 
-            Size GetSize() const {
+            Size GetSize() const
+            {
                 return Size(width, height);
             }
 
-            bool IsPointInside(const Point& point) const {
+            bool IsPointInside(const Point& point) const
+            {
                 return
                     point.x >= left         &&
                     point.x < GetRight()    &&
@@ -85,20 +95,11 @@ namespace cru {
             float bottom;
         };
 
-		class UiEventArgs : public BasicEventArgs
-		{
-		public:
-			UiEventArgs(Object* sender, Object* original_sender);
-		    UiEventArgs(const UiEventArgs& other) = default;
-		    UiEventArgs(UiEventArgs&& other) = default;
-		    UiEventArgs& operator=(const UiEventArgs& other) = default;
-		    UiEventArgs& operator=(UiEventArgs&& other) = default;
-			~UiEventArgs() override = default;
-
-			Object* GetOriginalSender();
-
-		private:
-			Object* original_sender_;
-		};
+        enum class MouseButton
+        {
+            Left,
+            Right,
+            Middle
+        };
     }
 }

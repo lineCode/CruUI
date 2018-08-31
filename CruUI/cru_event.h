@@ -1,18 +1,23 @@
 #pragma once
 
-#include "Base.h"
 #include <type_traits>
 #include <list>
 #include <memory>
 #include <functional>
 #include <algorithm>
 
+#include "base.h"
+
 namespace cru {
 	//Base class of all event args.
 	class BasicEventArgs : public Object
 	{
 	public:
-		explicit BasicEventArgs(Object* sender);
+		explicit BasicEventArgs(Object* sender)
+            : sender_(sender)
+		{
+		    
+		}
 	    BasicEventArgs(const BasicEventArgs& other) = default;
 	    BasicEventArgs(BasicEventArgs&& other) = default;
 	    BasicEventArgs& operator=(const BasicEventArgs& other) = default;
@@ -20,7 +25,10 @@ namespace cru {
 		~BasicEventArgs() override = default;
 
 		//Get the sender of the event.
-		Object* GetSender();
+		Object* GetSender() const
+		{
+            return sender_;
+		}
 
 	private:
 		Object* sender_;
@@ -42,20 +50,15 @@ namespace cru {
         using EventHandler = std::function<void(ArgsType&)>;
         using EventHandlerPtr = std::shared_ptr<EventHandler>;
 
-		Event()
-		{
+        Event() = default;
+        Event(const Event&) = delete;
+        Event& operator = (const Event&) = delete;
+        Event(Event&&) = delete;
+        Event& operator = (Event&&) = delete;
+        ~Event() = default;
 
-		}
-
-		~Event()
-		{
-
-		}
-
-        CRU_NO_COPY_MOVE(Event)
-
-    public:
-
+        //Create a EventHandlerPtr from the given handler,
+        //add it to list and return it.
 		EventHandlerPtr AddHandler(const EventHandler& handler)
 		{
 			EventHandlerPtr ptr = std::make_shared<EventHandler>(handler);
